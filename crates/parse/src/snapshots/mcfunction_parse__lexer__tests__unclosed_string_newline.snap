@@ -1,0 +1,10 @@
+---
+source: crates/parse/src/lexer.rs
+expression: "format_sk_list(tokenize_str(\"\\\"hello world\\ngoodbye\\\"\"))"
+---
+QuotedString `"hello world` at 0:0 - 0:12
+LineBreak `\n` at 0:12 - 1:0
+Word `goodbye` at 1:0 - 1:7
+QuotedString `"` at 1:7 - 1:8
+Eof `` at 1:8 - 1:8
+

@@ -1,3 +1,8 @@
+[workspace]
+members = [
+    "crates/parse"
+]
+
 [package]
 name = "mcfunction"
 version = "0.0.1"
@@ -9,7 +14,8 @@ repository = "https://github.com/Yurihaia/mcfunction-rs"
 description = "A set of libraries for tools using Minecraft commands"
 
 [features]
-
-[workspace]
+default = [ "parse" ]
+parse = [ "mcfunction-parse" ]
 
 [dependencies]
+mcfunction-parse = { path = "crates/parse", version = "0.0.1", optional = true }

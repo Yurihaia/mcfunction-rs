@@ -1,0 +1,7 @@
+---
+source: crates/parse/src/lexer.rs
+expression: "format_sk_list(tokenize_str(\"%\"))"
+---
+Invalid `%` at 0:0 - 0:1
+Eof `` at 0:1 - 0:1
+

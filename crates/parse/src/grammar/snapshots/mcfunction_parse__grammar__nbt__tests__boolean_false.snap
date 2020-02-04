@@ -1,0 +1,6 @@
+---
+source: crates/parse/src/grammar/nbt.rs
+expression: "parse_nbt(\"false\")"
+---
+Joined(NbtBoolean) `false` at 0:0 - 0:5
+

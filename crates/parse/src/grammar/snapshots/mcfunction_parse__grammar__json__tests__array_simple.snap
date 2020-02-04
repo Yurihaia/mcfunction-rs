@@ -1,0 +1,14 @@
+---
+source: crates/parse/src/grammar/json.rs
+expression: "parse_json(r#\"[1, true, \"hello\"]\"#)"
+---
+Group(JsonList) at 0:0 - 0:18 {
+    Token(LBracket) `[` at 0:0 - 0:1
+    Joined(Float) `1` at 0:1 - 0:2
+    Token(Comma) `,` at 0:2 - 0:3
+    Joined(BooleanTrue) `true` at 0:4 - 0:8
+    Token(Comma) `,` at 0:8 - 0:9
+    Token(QuotedString) `"hello"` at 0:10 - 0:17
+    Token(RBracket) `]` at 0:17 - 0:18
+}
+

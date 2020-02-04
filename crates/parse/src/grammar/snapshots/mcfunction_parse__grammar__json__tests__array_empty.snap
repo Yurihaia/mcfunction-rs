@@ -1,0 +1,9 @@
+---
+source: crates/parse/src/grammar/json.rs
+expression: "parse_json(\"[]\")"
+---
+Group(JsonList) at 0:0 - 0:2 {
+    Token(LBracket) `[` at 0:0 - 0:1
+    Token(RBracket) `]` at 0:1 - 0:2
+}
+

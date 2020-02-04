@@ -1,0 +1,19 @@
+---
+source: crates/parse/src/grammar/json.rs
+expression: "parse_json(r#\"{\"foo\":true,\"bar\"}\"#)"
+---
+Group(JsonObject) at 0:0 - 0:18 {
+    Token(LCurly) `{` at 0:0 - 0:1
+    Group(JsonObjectEntry) at 0:1 - 0:11 {
+        Token(QuotedString) `"foo"` at 0:1 - 0:6
+        Token(Colon) `:` at 0:6 - 0:7
+        Joined(BooleanTrue) `true` at 0:7 - 0:11
+    }
+    Token(Comma) `,` at 0:11 - 0:12
+    Group(JsonObjectEntry) at 0:12 - 0:17 {
+        Token(QuotedString) `"bar"` at 0:12 - 0:17
+        Error `Expected one of ':'` at 0:17 - 0:17
+    }
+    Token(RCurly) `}` at 0:17 - 0:18
+}
+

@@ -1,0 +1,6 @@
+---
+source: crates/parse/src/grammar/nbt.rs
+expression: "parse_nbt(\"1a\")"
+---
+Joined(UnquotedString) `1a` at 0:0 - 0:2
+

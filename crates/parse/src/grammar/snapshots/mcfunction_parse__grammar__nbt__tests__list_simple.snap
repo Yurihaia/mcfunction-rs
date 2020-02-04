@@ -1,0 +1,10 @@
+---
+source: crates/parse/src/grammar/nbt.rs
+expression: "parse_nbt(\"['hello']\")"
+---
+Group(NbtSequence) at 0:0 - 0:9 {
+    Token(LBracket) `[` at 0:0 - 0:1
+    Token(QuotedString) `'hello'` at 0:1 - 0:8
+    Token(RBracket) `]` at 0:8 - 0:9
+}
+

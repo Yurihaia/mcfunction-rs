@@ -1,0 +1,14 @@
+---
+source: crates/parse/src/grammar/nbt.rs
+expression: "parse_nbt(\"[L;123456789]\")"
+---
+Group(NbtSequence) at 0:0 - 0:13 {
+    Token(LBracket) `[` at 0:0 - 0:1
+    Joined(NbtPrefixL) `L` at 0:1 - 0:2
+    Token(Semicolon) `;` at 0:2 - 0:3
+    Group(NbtNumber) at 0:3 - 0:12 {
+        Joined(Integer) `123456789` at 0:3 - 0:12
+    }
+    Token(RBracket) `]` at 0:12 - 0:13
+}
+

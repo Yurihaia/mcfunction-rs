@@ -1,0 +1,20 @@
+---
+source: crates/parse/src/grammar/json.rs
+expression: "parse_json(r#\"{\"text\":\"hello\",\"bold\":true}\"#)"
+---
+Group(JsonObject) at 0:0 - 0:28 {
+    Token(LCurly) `{` at 0:0 - 0:1
+    Group(JsonObjectEntry) at 0:1 - 0:15 {
+        Token(QuotedString) `"text"` at 0:1 - 0:7
+        Token(Colon) `:` at 0:7 - 0:8
+        Token(QuotedString) `"hello"` at 0:8 - 0:15
+    }
+    Token(Comma) `,` at 0:15 - 0:16
+    Group(JsonObjectEntry) at 0:16 - 0:27 {
+        Token(QuotedString) `"bold"` at 0:16 - 0:22
+        Token(Colon) `:` at 0:22 - 0:23
+        Joined(BooleanTrue) `true` at 0:23 - 0:27
+    }
+    Token(RCurly) `}` at 0:27 - 0:28
+}
+

@@ -1,0 +1,8 @@
+---
+source: crates/parse/src/lexer.rs
+expression: "format_sk_list(tokenize_str(\"-2147483648\"))"
+---
+Dash `-` at 0:0 - 0:1
+Digits `2147483648` at 0:1 - 0:11
+Eof `` at 0:11 - 0:11
+

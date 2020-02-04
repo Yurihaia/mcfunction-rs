@@ -1,0 +1,40 @@
+---
+source: crates/parse/src/lexer.rs
+expression: "format_sk_list(tokenize_str(\"this text is on line one\\nthis is on like two\\n    this is indented by 4 spaces\"))"
+---
+Word `this` at 0:0 - 0:4
+Whitespace ` ` at 0:4 - 0:5
+Word `text` at 0:5 - 0:9
+Whitespace ` ` at 0:9 - 0:10
+Word `is` at 0:10 - 0:12
+Whitespace ` ` at 0:12 - 0:13
+Word `on` at 0:13 - 0:15
+Whitespace ` ` at 0:15 - 0:16
+Word `line` at 0:16 - 0:20
+Whitespace ` ` at 0:20 - 0:21
+Word `one` at 0:21 - 0:24
+LineBreak `\n` at 0:24 - 1:0
+Word `this` at 1:0 - 1:4
+Whitespace ` ` at 1:4 - 1:5
+Word `is` at 1:5 - 1:7
+Whitespace ` ` at 1:7 - 1:8
+Word `on` at 1:8 - 1:10
+Whitespace ` ` at 1:10 - 1:11
+Word `like` at 1:11 - 1:15
+Whitespace ` ` at 1:15 - 1:16
+Word `two` at 1:16 - 1:19
+LineBreak `\n` at 1:19 - 2:0
+Whitespace `    ` at 2:0 - 2:4
+Word `this` at 2:4 - 2:8
+Whitespace ` ` at 2:8 - 2:9
+Word `is` at 2:9 - 2:11
+Whitespace ` ` at 2:11 - 2:12
+Word `indented` at 2:12 - 2:20
+Whitespace ` ` at 2:20 - 2:21
+Word `by` at 2:21 - 2:23
+Whitespace ` ` at 2:23 - 2:24
+Digits `4` at 2:24 - 2:25
+Whitespace ` ` at 2:25 - 2:26
+Word `spaces` at 2:26 - 2:32
+Eof `` at 2:32 - 2:32
+

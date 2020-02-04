@@ -1,0 +1,14 @@
+---
+source: crates/parse/src/grammar/json.rs
+expression: "parse_json(r#\"[1, ]\"#)"
+---
+Group(JsonList) at 0:0 - 0:5 {
+    Token(LBracket) `[` at 0:0 - 0:1
+    Joined(Float) `1` at 0:1 - 0:2
+    Token(Comma) `,` at 0:2 - 0:3
+    Error `Expected one of '{', '[', 'Quoted String'` at 0:4 - 0:5
+    Error `Expected one of 'true', 'false', 'null'` at 0:4 - 0:5
+    Error `Error while parsing 'Float'` at 0:4 - 0:5
+    Token(RBracket) `]` at 0:4 - 0:5
+}
+

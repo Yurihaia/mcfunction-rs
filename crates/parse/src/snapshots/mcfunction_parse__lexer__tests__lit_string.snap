@@ -1,0 +1,7 @@
+---
+source: crates/parse/src/lexer.rs
+expression: "format_sk_list(tokenize_str(r#\"\"hello\"\"#))"
+---
+QuotedString `"hello"` at 0:0 - 0:7
+Eof `` at 0:7 - 0:7
+
