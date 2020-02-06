@@ -1,0 +1,30 @@
+---
+source: crates/parse/src/grammar/selector.rs
+expression: "parse_selector(\"@e[scores={myobjective=-12..74}]\")"
+---
+Group(Selector) at 0:0 - 0:32 {
+    Token(At) `@` at 0:0 - 0:1
+    Joined(SelectorModE) `e` at 0:1 - 0:2
+    Group(SelectorArgument) at 0:2 - 0:32 {
+        Token(LBracket) `[` at 0:2 - 0:3
+        Group(SelectorArgumentEntry) at 0:3 - 0:31 {
+            Joined(UnquotedString) `scores` at 0:3 - 0:9
+            Token(Eq) `=` at 0:9 - 0:10
+            Group(SelectorArgumentMap) at 0:10 - 0:31 {
+                Token(LCurly) `{` at 0:10 - 0:11
+                Group(SelectorArgumentMapEntry) at 0:11 - 0:30 {
+                    Joined(ResourceLocation) `myobjective` at 0:11 - 0:22
+                    Token(Eq) `=` at 0:22 - 0:23
+                    Group(Range) at 0:23 - 0:30 {
+                        Joined(Float) `-12` at 0:23 - 0:26
+                        Token(DotDot) `..` at 0:26 - 0:28
+                        Joined(Float) `74` at 0:28 - 0:30
+                    }
+                }
+                Token(RCurly) `}` at 0:30 - 0:31
+            }
+        }
+        Token(RBracket) `]` at 0:31 - 0:32
+    }
+}
+

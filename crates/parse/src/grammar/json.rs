@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     ast::GroupType::{self, *},
-    parser::Parser,
+    parser::{Parser, StartInfo::*},
     syntax::TokenKind::*,
     TokenSet,
 };
@@ -9,13 +9,13 @@ use crate::{
 const JSON_NULL: &[(&str, GroupType)] = &[("null", JsonNull)];
 
 pub fn object(p: &mut Parser) {
-    let objmk = p.start(JsonObject, false, true);
+    let objmk = p.start(JsonObject, Skip);
     p.expect(LCurly);
     if p.eat(RCurly) {
         p.finish(objmk);
     } else {
         loop {
-            let entmk = p.start(JsonObjectEntry, false, true);
+            let entmk = p.start(JsonObjectEntry, Skip);
             if p.expect(QuotedString) && p.expect(Colon) {
                 value(p);
             }
@@ -45,7 +45,7 @@ pub fn object(p: &mut Parser) {
 }
 
 pub fn array(p: &mut Parser) {
-    let arrmk = p.start(JsonList, false, true);
+    let arrmk = p.start(JsonList, Skip);
     p.expect(LBracket);
     if p.eat(RBracket) {
         p.finish(arrmk);
@@ -88,11 +88,12 @@ pub fn value(p: &mut Parser) {
         p.eat_keyword(BOOLEAN);
     } else if lk.at_keywords(JSON_NULL) {
         p.eat_keyword(JSON_NULL);
-    } else if lk.at_tks(ALLOWED_NUMBER_START) {
-        float(p);
     } else {
         lk.group_error(Float);
-        lk.add_errors();
+        let errs = lk.get_errors();
+        if !p.try_token(float_tk, Float) {
+            p.add_errors(errs);
+        }
     }
 }
 

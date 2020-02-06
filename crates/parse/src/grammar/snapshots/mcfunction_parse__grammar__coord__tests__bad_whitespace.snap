@@ -1,0 +1,20 @@
+---
+source: crates/parse/src/grammar/coord.rs
+expression: "parse_coord(\"0   \\t   ^-124 ~-0124\")"
+---
+Group(Coord) at 0:0 - 0:20 {
+    Group(CoordPart) at 0:0 - 0:1 {
+        Joined(Float) `0` at 0:0 - 0:1
+    }
+    Token(Whitespace) `   \t   ` at 0:1 - 0:8
+    Group(CoordPart) at 0:8 - 0:13 {
+        Token(Caret) `^` at 0:8 - 0:9
+        Joined(Float) `-124` at 0:9 - 0:13
+    }
+    Token(Whitespace) ` ` at 0:13 - 0:14
+    Group(CoordPart) at 0:14 - 0:20 {
+        Token(Tilde) `~` at 0:14 - 0:15
+        Joined(Float) `-0124` at 0:15 - 0:20
+    }
+}
+

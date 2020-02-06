@@ -1,0 +1,7 @@
+---
+source: crates/parse/src/grammar/nbt.rs
+expression: "parse_path(\"\")"
+---
+Group(NbtPath) at 0:0 - 0:0 {
+}
+

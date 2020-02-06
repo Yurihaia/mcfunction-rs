@@ -8,7 +8,7 @@ Group(NbtCompound) at 0:0 - 0:31 {
         Joined(UnquotedString) `foo` at 0:2 - 0:5
         Token(Colon) `:` at 0:7 - 0:8
         Group(NbtNumber) at 0:8 - 0:12 {
-            Joined(Integer) `1564` at 0:8 - 0:12
+            Joined(Float) `1564` at 0:8 - 0:12
         }
     }
     Token(Comma) `,` at 0:13 - 0:14
@@ -16,7 +16,7 @@ Group(NbtCompound) at 0:0 - 0:31 {
         Joined(UnquotedString) `bar` at 0:20 - 0:23
         Token(Colon) `:` at 0:23 - 0:24
         Group(NbtNumber) at 0:24 - 0:27 {
-            Joined(Integer) `420` at 0:24 - 0:27
+            Joined(Float) `420` at 0:24 - 0:27
         }
     }
     Token(RCurly) `}` at 0:30 - 0:31

@@ -217,7 +217,7 @@ mod tests {
 
     lex_test!(
         newline_test,
-        "this text is on line one\nthis is on like two\n    this is indented by 4 spaces"
+        "this text is on line one\nthis is on line two\n    this is indented by 4 spaces"
     );
 
     lex_test!(unclosed_group, "{ unclosed group");

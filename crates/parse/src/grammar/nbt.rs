@@ -1,7 +1,10 @@
 use super::*;
 use crate::{
     ast::GroupType::{self, *},
-    parser::Parser,
+    parser::{
+        Parser,
+        StartInfo::{self, Join, Skip},
+    },
     syntax::TokenKind::*,
 };
 
@@ -20,25 +23,9 @@ pub fn value(p: &mut Parser) {
     if p.at(QuotedString) {
         p.bump();
     } else if p.at(LCurly) {
-        let cpdmk = p.start(NbtCompound, false, true);
-
-        p.bump();
-        if !p.at(RCurly) {
-            loop {
-                let enmk = p.start(NbtCompoundEntry, false, true);
-                string(p);
-                p.expect(Colon);
-                value(p);
-                p.finish(enmk);
-                if !p.eat(Comma) {
-                    break;
-                }
-            }
-        }
-        p.expect(RCurly);
-        p.finish(cpdmk);
+        compound(p);
     } else if p.at(LBracket) {
-        let mk = p.start(NbtSequence, false, true);
+        let mk = p.start(NbtSequence, Skip);
 
         p.bump();
         if p.nth(1) == Semicolon {
@@ -58,13 +45,13 @@ pub fn value(p: &mut Parser) {
         p.expect(RBracket);
         p.finish(mk);
     } else if p.at(Word) && !ALLOWED_UQ_STRING.contains(p.nth(1)) && p.at_keyword(BOOLEAN) {
-        let mk = p.start(NbtBoolean, true, false);
+        let mk = p.start(NbtBoolean, Join);
         p.bump();
         p.finish(mk);
     } else {
-        let nmk = p.start(NbtNumber, false, false);
+        let nmk = p.start(NbtNumber, StartInfo::None);
 
-        if !try_float(p) {
+        if !p.try_token(float_tk, Float) {
             p.cancel(nmk);
             uq_string(p);
         } else {
@@ -79,41 +66,56 @@ pub fn value(p: &mut Parser) {
     }
 }
 
-fn try_float(p: &mut Parser) -> bool {
-    let fmk = p.start(Float, true, false);
+pub fn compound(p: &mut Parser) {
+    let cpdmk = p.start(NbtCompound, Skip);
 
-    if !p.eat(Dash) {
-        p.eat(Plus);
-    }
-    if p.at(Dot) {
-        p.bump();
-        if !p.eat(Digits) {
-            p.cancel(fmk);
-            return false;
-        }
-        if p.eat_keyword(FLOAT_SCI) {
-            integer(p);
-        }
-    } else if p.at(Digits) {
-        p.bump();
-        if p.eat(Dot) {
-            p.eat(Digits);
-            if p.eat_keyword(FLOAT_SCI) {
-                integer(p);
+    p.bump();
+    if !p.at(RCurly) {
+        loop {
+            let enmk = p.start(NbtCompoundEntry, Skip);
+            string(p);
+            p.expect(Colon);
+            value(p);
+            p.finish(enmk);
+            if !p.eat(Comma) {
+                break;
             }
+        }
+    }
+    p.expect(RCurly);
+    p.finish(cpdmk);
+}
+
+pub fn path(p: &mut Parser) {
+    let mk = p.start(NbtPath, StartInfo::None);
+    let mut start = true;
+    loop {
+        let vmk = p.start(NbtPathSegment, StartInfo::None);
+        if p.at(LBracket) {
+            let indmk = p.start(NbtPathIndex, StartInfo::Skip);
+            p.bump();
+            if !p.at(RBracket) && !p.try_token(integer_tk, Integer) {
+                compound(p);
+            }
+            p.expect(RBracket);
+            p.finish(indmk);
         } else {
-            if p.eat_keyword(FLOAT_SCI) {
-                integer(p);
+            if !start {
+                if !(p.eat(Dot) || p.eat(DotDot)) {
+                    p.cancel(vmk);
+                    break;
+                }
             } else {
-                p.retype(&fmk, Integer, true);
+                start = false;
+            }
+            if !p.eat(Word) && !p.eat(QuotedString) {
+                p.cancel(vmk);
+                break;
             }
         }
-    } else {
-        p.cancel(fmk);
-        return false;
+        p.finish(vmk);
     }
-    p.finish(fmk);
-    true
+    p.finish(mk);
 }
 
 #[cfg(test)]
@@ -131,8 +133,21 @@ mod tests {
         };
     }
 
+    macro_rules! path_test {
+        ($name:ident, $e:expr) => {
+            #[test]
+            fn $name() {
+                assert_snapshot!(parse_path($e));
+            }
+        };
+    }
+
     fn parse_nbt(i: &str) -> String {
         format_astnode(&parse(i, super::value), 0)
+    }
+
+    fn parse_path(i: &str) -> String {
+        format_astnode(&parse(i, super::path), 0)
     }
 
     nbt_test!(unsigned_int, "123");
@@ -165,4 +180,12 @@ mod tests {
     nbt_test!(float_dash, "-0.61803398875");
     nbt_test!(float_no_prec, ".37412");
     nbt_test!(float_only_dot, ".");
+
+    path_test!(empty, "");
+    path_test!(single_field, "foo");
+    path_test!(multi_field, "path.to.field");
+    path_test!(start_index, "[0]");
+    path_test!(chained_index, "[0][34][12553]");
+    path_test!(mixed, "foo[0].bar.baz[1]");
+    path_test!(filter, "filter[{me:123}]");
 }

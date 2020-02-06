@@ -1,0 +1,18 @@
+---
+source: crates/parse/src/grammar/coord.rs
+expression: "parse_coord(\"0.3 9.65 -.14927\")"
+---
+Group(Coord) at 0:0 - 0:16 {
+    Group(CoordPart) at 0:0 - 0:3 {
+        Joined(Float) `0.3` at 0:0 - 0:3
+    }
+    Token(Whitespace) ` ` at 0:3 - 0:4
+    Group(CoordPart) at 0:4 - 0:8 {
+        Joined(Float) `9.65` at 0:4 - 0:8
+    }
+    Token(Whitespace) ` ` at 0:8 - 0:9
+    Group(CoordPart) at 0:9 - 0:16 {
+        Joined(Float) `-.14927` at 0:9 - 0:16
+    }
+}
+

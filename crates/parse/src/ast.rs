@@ -21,6 +21,10 @@ pub enum GroupType {
     // NBT Compound
     NbtCompoundEntry,
 
+    NbtPath,
+    NbtPathSegment,
+    NbtPathIndex,
+
     // Selector groups
     Selector,
     SelectorArgument,
@@ -34,8 +38,6 @@ pub enum GroupType {
     SelectorModS,
     SelectorModE,
 
-    NbtPathIndex,
-
     JsonObject,
     JsonObjectEntry,
     JsonList,
@@ -46,6 +48,9 @@ pub enum GroupType {
     UnquotedString,
     ResourceLocation,
     Range,
+
+    Coord,
+    CoordPart,
 
     // Keywords
     BooleanTrue,

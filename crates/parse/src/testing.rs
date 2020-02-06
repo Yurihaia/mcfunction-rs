@@ -10,15 +10,27 @@ pub fn format_astnode(node: &AstNode, indlevel: usize) -> String {
     let mut out = String::new();
     match node.kind() {
         SyntaxKind::Token(tk) => {
-            write!(
-                out,
-                "{}Token({:?}) `{}` at {}\n",
-                ind,
-                tk,
-                node.string(),
-                node.span()
-            )
-            .unwrap();
+            if let TokenKind::Whitespace | TokenKind::LineBreak = tk {
+                write!(
+                    out,
+                    "{}Token({:?}) `{}` at {}\n",
+                    ind,
+                    tk,
+                    node.string().escape_debug(),
+                    node.span()
+                )
+                .unwrap();
+            } else {
+                write!(
+                    out,
+                    "{}Token({:?}) `{}` at {}\n",
+                    ind,
+                    tk,
+                    node.string(),
+                    node.span()
+                )
+                .unwrap();
+            }
         }
         SyntaxKind::Group(gt) => {
             write!(out, "{}Group({:?}) at {} {{\n", ind, gt, node.span()).unwrap();

@@ -29,7 +29,7 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn start(&mut self, kind: GroupType, join: bool, skip: bool) -> Marker<'t> {
+    pub fn start(&mut self, kind: GroupType, skip: StartInfo) -> Marker<'t> {
         if self.skip_ws {
             self.skip_ws();
         }
@@ -39,13 +39,16 @@ impl<'t, 's> Parser<'t, 's> {
             self.skip_ws,
             DropBomb::new("Markers should either be finished or cancelled"),
         );
-        self.skip_ws = skip;
-        self.events.push(Event::Start { kind, join });
+        self.skip_ws = skip == StartInfo::Skip;
+        self.push_event(Event::Start {
+            kind,
+            join: skip == StartInfo::Join,
+        });
         mk
     }
 
     pub fn finish(&mut self, mut marker: Marker<'t>) {
-        self.events.push(Event::End {
+        self.push_event(Event::End {
             linecol: self.tokens[0].span().start(),
             off: self.tokens[0].start(),
         });
@@ -92,7 +95,7 @@ impl<'t, 's> Parser<'t, 's> {
         let tk = self.nth_tk(0);
         // Never progress past the EOF so there will always be one token in the slice
         if !self.at(TokenKind::Eof) {
-            self.events.push(Event::Token(tk));
+            self.push_event(Event::Token(tk));
             self.skip();
         }
     }
@@ -105,6 +108,15 @@ impl<'t, 's> Parser<'t, 's> {
 
     pub fn eat(&mut self, kind: TokenKind) -> bool {
         if self.at(kind) {
+            self.bump();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn eat_tokens(&mut self, set: TokenSet) -> bool {
+        if self.at_tokens(set) {
             self.bump();
             true
         } else {
@@ -128,7 +140,7 @@ impl<'t, 's> Parser<'t, 's> {
             let tk = self.nth_tk(0).string(self.src);
             for (x, g) in ex {
                 if tk == *x {
-                    let mk = self.start(*g, true, false);
+                    let mk = self.start(*g, StartInfo::Join);
                     self.bump();
                     self.finish(mk);
                     return true;
@@ -139,6 +151,21 @@ impl<'t, 's> Parser<'t, 's> {
             false
         } else {
             self.expect(TokenKind::Word);
+            false
+        }
+    }
+
+    pub fn try_token<F: FnOnce(&mut TokenParser) -> Option<()>>(
+        &mut self,
+        f: F,
+        kind: GroupType,
+    ) -> bool {
+        let mk = self.start(kind, StartInfo::Join);
+        if f(&mut TokenParser(self)).is_some() {
+            self.finish(mk);
+            true
+        } else {
+            self.cancel(mk);
             false
         }
     }
@@ -162,7 +189,7 @@ impl<'t, 's> Parser<'t, 's> {
             let tk = self.nth_tk(0).string(self.src);
             for (x, g) in ex {
                 if tk == *x {
-                    let mk = self.start(*g, true, false);
+                    let mk = self.start(*g, StartInfo::Join);
                     self.bump();
                     self.finish(mk);
                     return true;
@@ -208,7 +235,17 @@ impl<'t, 's> Parser<'t, 's> {
     }
 
     pub fn error(&mut self, err: GroupType) {
-        self.events.push(Event::Error(err.into()))
+        self.push_event(Event::Error(err.into()))
+    }
+
+    pub fn add_errors(&mut self, errs: Vec<ParseError>) {
+        for err in errs {
+            self.push_event(Event::Error(err));
+        }
+    }
+
+    fn push_event(&mut self, evt: Event) {
+        self.events.push(evt);
     }
 
     pub fn build(self) -> AstNode<'s> {
@@ -282,6 +319,7 @@ impl<'t, 's> Parser<'t, 's> {
         }
 
         fn convert<'a>(node: ParentNode, src: &'a str) -> AstNode<'a> {
+            println!("{:?}", node);
             let (span, start, end) = node.spans.unwrap();
             let mut children = Vec::with_capacity(node.children.len());
             let mut iter = node.children.into_iter().peekable();
@@ -364,12 +402,77 @@ impl<'t, 's> Parser<'t, 's> {
         }
 
         assert!(stack.len() == 1);
-        convert(stack.pop().unwrap(), self.src)
+        let mut parent = stack.pop().unwrap();
+        if parent.spans.is_none() {
+            let fst = self.tokens[0];
+            parent.spans = Some((
+                Span::new(fst.span().start(), fst.span().start()),
+                fst.start(),
+                fst.start(),
+            ));
+        }
+
+        convert(parent, self.src)
+    }
+}
+
+pub struct TokenParser<'p, 't, 's>(&'p mut Parser<'t, 's>);
+
+impl<'p, 't, 's> TokenParser<'p, 't, 's> {
+    pub fn eat(&mut self, kind: TokenKind) -> bool {
+        self.expect(kind).is_some()
+    }
+
+    pub fn eat_tokens(&mut self, set: TokenSet) -> bool {
+        self.expect_tokens(set).is_some()
+    }
+
+    pub fn eat_kw(&mut self, kws: &'static [(&'static str, GroupType)]) -> bool {
+        self.0.eat_keyword(kws)
+    }
+
+    pub fn expect(&mut self, kind: TokenKind) -> Option<()> {
+        if self.0.at(kind) {
+            self.0.bump();
+            Some(())
+        } else {
+            None
+        }
+    }
+
+    pub fn expect_tokens(&mut self, set: TokenSet) -> Option<()> {
+        if self.0.at_tokens(set) {
+            self.0.bump();
+            Some(())
+        } else {
+            None
+        }
+    }
+
+    pub fn expect_kw(&mut self, kws: &'static [(&'static str, GroupType)]) -> Option<()> {
+        if self.0.at_keyword(kws) {
+            self.0.bump();
+            Some(())
+        } else {
+            None
+        }
+    }
+
+    pub fn nth(&self, n: usize) -> TokenKind {
+        assert!(n <= 1);
+        self.0.nth(n)
     }
 }
 
 #[derive(Debug)]
 pub struct Marker<'t>(&'t [Token], usize, bool, DropBomb<&'t str>);
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum StartInfo {
+    Join,
+    Skip,
+    None,
+}
 
 #[derive(Debug)]
 pub struct Lookahead<'p, 't, 's> {

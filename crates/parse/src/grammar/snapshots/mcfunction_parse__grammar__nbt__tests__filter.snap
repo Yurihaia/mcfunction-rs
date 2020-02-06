@@ -1,0 +1,27 @@
+---
+source: crates/parse/src/grammar/nbt.rs
+expression: "parse_path(\"filter[{me:123}]\")"
+---
+Group(NbtPath) at 0:0 - 0:16 {
+    Group(NbtPathSegment) at 0:0 - 0:6 {
+        Token(Word) `filter` at 0:0 - 0:6
+    }
+    Group(NbtPathSegment) at 0:6 - 0:16 {
+        Group(NbtPathIndex) at 0:6 - 0:16 {
+            Token(LBracket) `[` at 0:6 - 0:7
+            Group(NbtCompound) at 0:7 - 0:15 {
+                Token(LCurly) `{` at 0:7 - 0:8
+                Group(NbtCompoundEntry) at 0:8 - 0:14 {
+                    Joined(UnquotedString) `me` at 0:8 - 0:10
+                    Token(Colon) `:` at 0:10 - 0:11
+                    Group(NbtNumber) at 0:11 - 0:14 {
+                        Joined(Float) `123` at 0:11 - 0:14
+                    }
+                }
+                Token(RCurly) `}` at 0:14 - 0:15
+            }
+            Token(RBracket) `]` at 0:15 - 0:16
+        }
+    }
+}
+
