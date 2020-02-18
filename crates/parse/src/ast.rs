@@ -1,8 +1,11 @@
 use crate::{ParseError, Span, TokenKind};
 
+use mcf_util::commands::Index;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum GroupType {
-    CommandNode(usize),
+    CommandNode(Index),
+    Command,
     // NBT groups
     NbtCompound,
     NbtSequence,
@@ -38,6 +41,17 @@ pub enum GroupType {
     SelectorModS,
     SelectorModE,
 
+    // Block states
+    BlockState,
+    BlockStateArguments,
+
+    ItemStack,
+    ItemPredicate,
+
+    Comment,
+
+    Function,
+
     JsonObject,
     JsonObjectEntry,
     JsonList,
@@ -48,6 +62,12 @@ pub enum GroupType {
     UnquotedString,
     ResourceLocation,
     Range,
+    Uuid,
+    Time,
+
+    TimeS,
+    TimeT,
+    TimeD,
 
     Coord,
     CoordPart,

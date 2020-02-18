@@ -6,7 +6,7 @@ use crate::{
         StartInfo::{self, Skip},
     },
     syntax::TokenKind::*,
-    TokenSet,
+    tokenset, TokenSet,
 };
 
 const SELECTOR_TYPE: &[(&str, GroupType)] = &[
@@ -17,8 +17,39 @@ const SELECTOR_TYPE: &[(&str, GroupType)] = &[
     ("e", SelectorModE),
 ];
 
-pub fn selector(p: &mut Parser) {
+pub fn game_profile(p: &mut Parser) {
     let mk = p.start(Selector, StartInfo::None);
+    if !p.try_token(uuid_tk, Uuid) {
+        uq_string(p);
+    }
+    p.finish(mk);
+}
+
+pub fn entity(p: &mut Parser) {
+    let mk = p.start(Selector, StartInfo::None);
+    if p.at(At) {
+        selector(p);
+    } else if !p.try_token(uuid_tk, Uuid) {
+        uq_string(p);
+    }
+    p.finish(mk);
+}
+
+pub fn score_holder(p: &mut Parser) {
+    let mk = p.start(Selector, StartInfo::None);
+    if p.at(At) {
+        selector(p);
+    } else if !p.try_token(uuid_tk, Uuid) {
+        let nmp = p.start(UnquotedString, StartInfo::Join);
+        while !p.at_tokens(tokenset![Whitespace, LineBreak]) {
+            p.bump();
+        }
+        p.finish(nmp);
+    }
+    p.finish(mk);
+}
+
+pub fn selector(p: &mut Parser) {
     p.expect(At);
     if !p.expect_keyword(SELECTOR_TYPE) {
         p.bump_recover(TokenSet::empty());
@@ -45,7 +76,6 @@ pub fn selector(p: &mut Parser) {
         p.expect(RBracket);
         p.finish(argsmk);
     }
-    p.finish(mk);
 }
 
 pub fn seletor_arg_value(p: &mut Parser) {
@@ -74,10 +104,34 @@ pub fn seletor_arg_value(p: &mut Parser) {
         p.expect(RCurly);
         p.finish(mapmk);
     } else {
-        if !try_range(p) {
+        if !try_range_suffix(p) {
             resource_location(p);
         }
     }
+}
+
+pub fn try_range_suffix(p: &mut Parser) -> bool {
+    let mk = p.start(Range, StartInfo::None);
+    if p.eat(DotDot) {
+        if !p.try_token(float_tk, Float) {
+            p.cancel(mk);
+            return false;
+        }
+    } else {
+        if !p.try_token(float_tk, Float) {
+            p.cancel(mk);
+            return false;
+        }
+        if p.eat(DotDot) {
+            p.try_token(float_tk, Float);
+        }
+    }
+    if p.at_tokens(ALLOWED_UQ_STRING) {
+        p.cancel(mk);
+        return false;
+    }
+    p.finish(mk);
+    true
 }
 
 #[cfg(test)]
@@ -96,7 +150,7 @@ mod tests {
     }
 
     fn parse_selector(i: &str) -> String {
-        format_astnode(&parse(i, super::selector), 0)
+        format_astnode(&parse(i, super::entity), 0)
     }
 
     selector_test!(no_args, "@p");

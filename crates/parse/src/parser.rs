@@ -1,13 +1,14 @@
 use crate::{
     ast::{AstNode, GroupType, SyntaxKind},
-    dropbomb::DropBomb,
     error::{ExpectedLit, ExpectedToken},
     LineCol, ParseError, Span, Token, TokenKind, TokenSet,
 };
 
+use mcf_util::DropBomb;
+
 #[derive(Debug)]
 pub struct Parser<'t, 's> {
-    tokens: &'t [Token],
+    pub(crate) tokens: &'t [Token],
     events: Vec<Event>,
     src: &'s str,
     skip_ws: bool,
@@ -78,7 +79,7 @@ impl<'t, 's> Parser<'t, 's> {
         self.nth_tk(off).kind()
     }
 
-    fn nth_tk(&self, n: usize) -> Token {
+    pub(crate) fn nth_tk(&self, n: usize) -> Token {
         assert!(n <= 1);
         match n {
             0 => next_tk(self.tokens, self.skip_ws)[0],
@@ -91,17 +92,24 @@ impl<'t, 's> Parser<'t, 's> {
         self.nth(0) == kind
     }
 
+    pub fn skip_linebreak(&mut self) {
+        if self.at(TokenKind::LineBreak) {
+            self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
+        }
+    }
+
     pub fn bump(&mut self) {
         let tk = self.nth_tk(0);
         // Never progress past the EOF so there will always be one token in the slice
-        if !self.at(TokenKind::Eof) {
+        // Don't progress over line breaks either so the parser wont crash and burn
+        if !self.at(TokenKind::Eof) && !self.at(TokenKind::LineBreak) {
             self.push_event(Event::Token(tk));
             self.skip();
         }
     }
 
     pub fn skip(&mut self) {
-        if !self.at(TokenKind::Eof) {
+        if !self.at(TokenKind::Eof) && !self.at(TokenKind::LineBreak) {
             self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
         }
     }
@@ -166,6 +174,23 @@ impl<'t, 's> Parser<'t, 's> {
             true
         } else {
             self.cancel(mk);
+            false
+        }
+    }
+
+    pub fn at_token<F: FnOnce(&mut TokenParser) -> Option<()>>(&self, f: F) -> bool {
+        let mut parser = Parser {
+            tokens: self.tokens,
+            events: Vec::new(),
+            src: self.src,
+            skip_ws: self.skip_ws,
+        };
+        let mk = parser.start(GroupType::Error, StartInfo::Join);
+        if f(&mut TokenParser(&mut parser)).is_some() {
+            parser.cancel(mk);
+            true
+        } else {
+            parser.cancel(mk);
             false
         }
     }
@@ -319,7 +344,6 @@ impl<'t, 's> Parser<'t, 's> {
         }
 
         fn convert<'a>(node: ParentNode, src: &'a str) -> AstNode<'a> {
-            println!("{:?}", node);
             let (span, start, end) = node.spans.unwrap();
             let mut children = Vec::with_capacity(node.children.len());
             let mut iter = node.children.into_iter().peekable();

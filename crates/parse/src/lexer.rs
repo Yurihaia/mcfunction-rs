@@ -2,7 +2,7 @@ use super::{LineCol, Span, Token, TokenKind};
 
 use TokenKind::*;
 
-const PUNCT: &[(&str, TokenKind)] = &[
+pub const PUNCT: &[(&str, TokenKind)] = &[
     // Double
     ("..", DotDot),
     ("<=", Lte),
@@ -28,6 +28,7 @@ const PUNCT: &[(&str, TokenKind)] = &[
     ("^", Caret),
     ("+", Plus),
     ("-", Dash),
+    ("#", Hash),
     // Delimiters
     ("{", LCurly),
     ("}", RCurly),

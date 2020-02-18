@@ -1,5 +1,5 @@
 use crate::{
-    ast::{AstNode, SyntaxKind},
+    ast::{AstNode, GroupType, SyntaxKind},
     Token, TokenKind,
 };
 
@@ -33,7 +33,17 @@ pub fn format_astnode(node: &AstNode, indlevel: usize) -> String {
             }
         }
         SyntaxKind::Group(gt) => {
-            write!(out, "{}Group({:?}) at {} {{\n", ind, gt, node.span()).unwrap();
+            write!(
+                out,
+                "{}Group({}) at {} {{\n",
+                ind,
+                match gt {
+                    GroupType::CommandNode(ind) => format!("CommandNode({})", usize::from(*ind)),
+                    v => format!("{:?}", v),
+                },
+                node.span()
+            )
+            .unwrap();
             for x in node.children() {
                 write!(out, "{}", format_astnode(x, indlevel + 1)).unwrap();
             }

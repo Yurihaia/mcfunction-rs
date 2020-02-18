@@ -5,6 +5,40 @@ use crate::{
     tokenset, TokenSet,
 };
 
+pub fn function(p: &mut Parser) {
+    let mk = p.start(Function, StartInfo::None);
+    p.eat(Hash);
+    resource_location(p);
+    p.finish(mk);
+}
+
+pub fn item_stack(p: &mut Parser) {
+    let mk = p.start(ItemStack, StartInfo::None);
+    resource_location(p);
+    if p.at(LCurly) {
+        super::nbt::compound(p);
+    }
+    p.finish(mk);
+}
+
+pub fn item_predicate(p: &mut Parser) {
+    let mk = p.start(ItemPredicate, StartInfo::None);
+    p.eat(Hash);
+    resource_location(p);
+    if p.at(LCurly) {
+        super::nbt::compound(p);
+    }
+    p.finish(mk);
+}
+
+pub fn message(p: &mut Parser) {
+    let mk = p.start(UnquotedString, StartInfo::None);
+    while !(p.at(Eof) || p.at(LineBreak)) {
+        p.bump();
+    }
+    p.finish(mk);
+}
+
 pub fn resource_location(p: &mut Parser) {
     if !p.try_token(resource_location_tk, ResourceLocation) {
         p.error(ResourceLocation);
@@ -59,9 +93,23 @@ pub fn try_range(p: &mut Parser) -> bool {
 
 pub const ALLOWED_UQ_STRING: TokenSet = tokenset![Digits, Word, Dash, Plus, Dot, DotDot];
 
+pub const OPERATION: TokenSet =
+    tokenset![AddAssign, SubAssign, MulAssign, DivAssign, ModAssign, Lte, Gte, Swap];
+
 pub const BOOLEAN: &[(&str, GroupType)] = &[("true", BooleanTrue), ("false", BooleanFalse)];
 
 pub const FLOAT_SCI: &[(&str, GroupType)] = &[("e", FloatSciExpLower), ("E", FloatSciExpUpper)];
+
+const HEX_CHAR: &[(&str, GroupType)] = &[
+    ("a", Integer),
+    ("b", Integer),
+    ("c", Integer),
+    ("d", Integer),
+    ("e", Integer),
+    ("f", Integer),
+];
+
+pub const TIME_SUFFIX: &[(&str, GroupType)] = &[("s", TimeS), ("t", TimeT), ("d", TimeD)];
 
 pub fn uq_string(p: &mut Parser) {
     p.try_token(uq_string_tk, UnquotedString);
@@ -75,6 +123,48 @@ pub fn uq_string_tk(p: &mut TokenParser) -> Option<()> {
 pub fn uq_string_ne_tk(p: &mut TokenParser) -> Option<()> {
     p.expect_tokens(ALLOWED_UQ_STRING)?;
     uq_string_tk(p)?;
+    Some(())
+}
+
+pub fn time(p: &mut Parser) {
+    let mk = p.start(Time, StartInfo::None);
+    p.expect(Digits);
+    p.eat_keyword(TIME_SUFFIX);
+    p.finish(mk);
+}
+
+pub fn uuid_tk(p: &mut TokenParser) -> Option<()> {
+    let mut empty = true;
+    while p.eat(Digits) || p.eat_kw(HEX_CHAR) {
+        empty = false
+    }
+    if empty {
+        return None;
+    }
+    p.expect(Dash)?;
+    let mut empty = true;
+    while p.eat(Digits) || p.eat_kw(HEX_CHAR) {
+        empty = false
+    }
+    if empty {
+        return None;
+    }
+    p.expect(Dash)?;
+    let mut empty = true;
+    while p.eat(Digits) || p.eat_kw(HEX_CHAR) {
+        empty = false
+    }
+    if empty {
+        return None;
+    }
+    p.expect(Dash)?;
+    let mut empty = true;
+    while p.eat(Digits) || p.eat_kw(HEX_CHAR) {
+        empty = false
+    }
+    if empty {
+        return None;
+    }
     Some(())
 }
 

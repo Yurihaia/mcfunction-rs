@@ -6,7 +6,25 @@ use crate::{
     tokenset, TokenSet,
 };
 
-const COORD_MODIFIER: TokenSet = tokenset![Tilde, Caret];
+pub const COORD_MODIFIER: TokenSet = tokenset![Tilde, Caret];
+
+pub fn coord2(p: &mut Parser) {
+    let mk = p.start(Coord, StartInfo::None);
+    let pmk = p.start(CoordPart, StartInfo::None);
+    p.eat_tokens(COORD_MODIFIER);
+    if !p.at(Whitespace) {
+        float(p);
+    }
+    p.finish(pmk);
+    p.expect(Whitespace);
+    let pmk = p.start(CoordPart, StartInfo::None);
+    p.eat_tokens(COORD_MODIFIER);
+    if !p.at(Whitespace) {
+        float(p);
+    }
+    p.finish(pmk);
+    p.finish(mk);
+}
 
 pub fn coord(p: &mut Parser) {
     let mk = p.start(Coord, StartInfo::None);
@@ -26,7 +44,7 @@ pub fn coord(p: &mut Parser) {
     p.expect(Whitespace);
     let pmk = p.start(CoordPart, StartInfo::None);
     p.eat_tokens(COORD_MODIFIER);
-    if !p.at(Whitespace) {
+    if !p.at_tokens(tokenset![Whitespace, LineBreak, Eof]) {
         float(p);
     }
     p.finish(pmk);

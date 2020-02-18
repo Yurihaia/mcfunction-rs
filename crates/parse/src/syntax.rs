@@ -57,6 +57,7 @@ pub enum TokenKind {
     Caret,
     Plus,
     Dash,
+    Hash,
     // Double Character Punctuation
     DotDot,
     Lte,
@@ -100,6 +101,7 @@ impl fmt::Display for TokenKind {
                 Eq => "=",
                 Lt => "<",
                 Gt => ">",
+                Hash => "#",
                 Slash => "/",
                 Tilde => "~",
                 Caret => "^",

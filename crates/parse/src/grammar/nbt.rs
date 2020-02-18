@@ -109,7 +109,8 @@ pub fn path(p: &mut Parser) {
                 start = false;
             }
             if !p.eat(Word) && !p.eat(QuotedString) {
-                p.cancel(vmk);
+                p.error(NbtPathSegment);
+                p.finish(vmk);
                 break;
             }
         }

@@ -1,3 +1,4 @@
+pub mod block;
 pub mod coord;
 pub mod json;
 pub mod nbt;
