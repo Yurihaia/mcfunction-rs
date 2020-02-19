@@ -6,7 +6,7 @@ use crate::{
         McParser,
     },
     parser::StartInfo::{self, Skip},
-    tokenset, TokenSet,
+    TokenSet,
 };
 
 const SELECTOR_TYPE: &[(&str, McGroupType)] = &[
@@ -41,7 +41,7 @@ pub fn score_holder(p: &mut McParser) {
         selector(p);
     } else if !p.try_token(uuid_tk, Uuid) {
         let nmp = p.start(UnquotedString, StartInfo::Join);
-        while !p.at_tokens(tokenset![Whitespace, LineBreak]) {
+        while !p.at(Whitespace) {
             p.bump();
         }
         p.finish(nmp);
@@ -136,7 +136,7 @@ pub fn try_range_suffix(p: &mut McParser) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::mcf::{parse, testing::format_astnode};
+    use crate::mcf::testing::{format_astnode, parse};
 
     use insta::assert_snapshot;
 

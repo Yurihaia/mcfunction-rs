@@ -1,6 +1,7 @@
 use crate::{
     ast::{AstNode, SyntaxKind},
-    mcf::{McGroupType, McTokenKind, McfLang},
+    mcf::{lexer, McGroupType, McParser, McTokenKind, McfLang},
+    parser::Parser,
     Token,
 };
 
@@ -11,7 +12,7 @@ pub fn format_astnode(node: &AstNode<McfLang>, indlevel: usize) -> String {
     let mut out = String::new();
     match node.kind() {
         SyntaxKind::Token(tk) => {
-            if let McTokenKind::Whitespace | McTokenKind::LineBreak = tk {
+            if let McTokenKind::Whitespace = tk {
                 write!(
                     out,
                     "{}Token({:?}) `{}` at {}\n",
@@ -78,26 +79,46 @@ pub fn format_astnode(node: &AstNode<McfLang>, indlevel: usize) -> String {
     out
 }
 
-pub fn format_sk_list(tokens: Vec<Token<McTokenKind>>, src: &str) -> String {
+pub fn format_sk_list(tokens: Vec<Vec<Token<McTokenKind>>>, src: &str) -> String {
     let mut out = String::new();
-    for tk in tokens {
-        match tk.kind() {
-            McTokenKind::Whitespace | McTokenKind::LineBreak => write!(
-                out,
-                "{:?} `{}` at {}\n",
-                tk.kind(),
-                tk.string(src).escape_debug(),
-                tk.span(),
-            ),
-            _ => write!(
-                out,
-                "{:?} `{}` at {}\n",
-                tk.kind(),
-                tk.string(src),
-                tk.span(),
-            ),
+    for line in tokens {
+        for tk in line {
+            match tk.kind() {
+                McTokenKind::Whitespace => write!(
+                    out,
+                    "{:?} `{}` at {}\n",
+                    tk.kind(),
+                    tk.string(src).escape_debug(),
+                    tk.span(),
+                ),
+                McTokenKind::Eof if tk.start() != tk.end() => write!(
+                    out,
+                    "LineBreak `{}` at {}\n",
+                    tk.string(src).escape_debug(),
+                    tk.span(),
+                ),
+                _ => write!(
+                    out,
+                    "{:?} `{}` at {}\n",
+                    tk.kind(),
+                    tk.string(src),
+                    tk.span(),
+                ),
+            }
+            .unwrap();
         }
-        .unwrap();
     }
     out
+}
+
+pub fn parse<F: FnMut(&mut McParser)>(i: &str, mut f: F) -> AstNode<McfLang> {
+    let tokens = lexer::tokenize_str(i);
+    assert!(!tokens.is_empty(), "Token stream is empty");
+    let mut parser = Parser::new(&tokens[0], i);
+    f(&mut parser);
+    for line in &tokens[1..] {
+        parser.change_tokens(&line);
+        f(&mut parser);
+    }
+    parser.build()
 }

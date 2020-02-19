@@ -15,13 +15,6 @@ mod group;
 #[cfg(test)]
 mod testing;
 
-pub fn parse<F: FnOnce(&mut McParser)>(i: &str, f: F) -> AstNode<McfLang> {
-    let tokens = lexer::tokenize_str(i);
-    let mut parser = Parser::new(&tokens, i);
-    f(&mut parser);
-    parser.build()
-}
-
 pub struct McfLang;
 
 impl Language for McfLang {
@@ -38,27 +31,36 @@ pub struct CommandParser<'c> {
 }
 
 impl<'c> CommandParser<'c> {
-    pub fn parse(&self, p: &mut McParser) {
-        while !p.at(McTokenKind::Eof) {
-            if p.at(McTokenKind::LineBreak) {
-                p.skip_linebreak();
-            } else if p.at(McTokenKind::Hash) {
-                let cmk = p.start(McGroupType::Comment, StartInfo::Join);
-                p.bump();
-                grammar::message(p);
-                p.finish(cmk);
-                p.skip_linebreak();
-            } else {
-                let cmk = p.start(McGroupType::Command, StartInfo::None);
-                self.parse_command(self.commands.root(), self.commands.root_index(), p);
-                p.finish(cmk);
-                p.skip_linebreak();
-            }
+    pub fn parse<'a>(&self, i: &'a str) -> AstNode<'a, McfLang> {
+        let tokens = lexer::tokenize_str(i);
+        assert!(!tokens.is_empty(), "Token stream is empty");
+        let mut p = Parser::new(&tokens[0], i);
+        self.parse_line(&mut p);
+        for line in &tokens[1..] {
+            p.change_tokens(&line);
+            self.parse_line(&mut p);
+        }
+        p.build()
+    }
+
+    fn parse_line(&self, p: &mut McParser) {
+        if p.at(McTokenKind::Eof) {
+            return;
+        }
+        if p.at(McTokenKind::Hash) {
+            let cmk = p.start(McGroupType::Comment, StartInfo::Join);
+            p.bump();
+            grammar::message(p);
+            p.finish(cmk);
+        } else {
+            let cmk = p.start(McGroupType::Command, StartInfo::None);
+            self.parse_command(self.commands.root(), self.commands.root_index(), p);
+            p.finish(cmk);
         }
     }
 
     fn parse_command(&self, c: &Command, ind: Index, p: &mut McParser) {
-        if p.at(McTokenKind::LineBreak) || p.at(McTokenKind::Eof) {
+        if p.at(McTokenKind::Eof) {
             return;
         }
         match c.node_type() {
@@ -133,7 +135,7 @@ impl<'c> CommandParser<'c> {
         }
         if let CommandNodeType::Root = c.node_type() {
         } else {
-            if p.at(McTokenKind::LineBreak) || p.at(McTokenKind::Eof) {
+            if p.at(McTokenKind::Eof) {
                 return;
             }
             if !p.expect(McTokenKind::Whitespace) {
@@ -177,12 +179,12 @@ impl<'c> CommandParser<'c> {
             }
         }
         if let Some((_, child, index)) = best {
-            if !p.at(McTokenKind::LineBreak) && !p.at(McTokenKind::Eof) {
+            if !p.at(McTokenKind::Eof) {
                 self.parse_command(child, index, p);
             }
         } else {
             let errmk = p.start(McGroupType::Error, StartInfo::None);
-            while !p.at(McTokenKind::LineBreak) && !p.at(McTokenKind::Eof) {
+            while !p.at(McTokenKind::Eof) {
                 p.bump();
             }
             p.finish(errmk);

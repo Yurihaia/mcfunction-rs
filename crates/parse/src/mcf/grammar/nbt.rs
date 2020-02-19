@@ -122,7 +122,7 @@ pub fn path(p: &mut McParser) {
 
 #[cfg(test)]
 mod tests {
-    use crate::mcf::{parse, testing::format_astnode};
+    use crate::mcf::testing::{format_astnode, parse};
 
     use insta::assert_snapshot;
 

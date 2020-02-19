@@ -35,9 +35,10 @@ pub const PUNCT: &[(&str, McTokenKind)] = &[
     ("]", RBracket),
 ];
 
-pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
+pub fn tokenize_str<'a>(src: &'a str) -> Vec<Vec<Token<McTokenKind>>> {
     let mut off = 0;
-    let mut out = vec![];
+    let mut lines = vec![];
+    let mut line_buf = vec![];
     let mut line = 0;
     let mut col = 0;
     'out: loop {
@@ -48,7 +49,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
         for (s, t) in PUNCT {
             if src[off..].starts_with(s) {
                 col += s.len();
-                out.push(Token::new(
+                line_buf.push(Token::new(
                     *t,
                     Span::new(start, LineCol::new(line, col)),
                     off,
@@ -67,7 +68,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
                 .unwrap();
             let end = end + endch.len_utf8();
             col += end;
-            out.push(Token::new(
+            line_buf.push(Token::new(
                 Word,
                 Span::new(start, LineCol::new(line, col)),
                 off,
@@ -82,7 +83,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
                 .unwrap();
             let end = end + endch.len_utf8();
             col += end;
-            out.push(Token::new(
+            line_buf.push(Token::new(
                 Digits,
                 Span::new(start, LineCol::new(line, col)),
                 off,
@@ -109,7 +110,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
                 }
             }
             col += offset;
-            out.push(Token::new(
+            line_buf.push(Token::new(
                 QuotedString,
                 Span::new(start, LineCol::new(line, col)),
                 off,
@@ -120,31 +121,37 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
             col = 0;
             line += 1;
             if let Some('\n') = src[off..].chars().nth(1) {
-                out.push(Token::new(
-                    LineBreak,
+                line_buf.push(Token::new(
+                    Eof,
                     Span::new(start, LineCol::new(line, col)),
                     off,
                     off + 2,
                 ));
+                lines.push(line_buf);
+                line_buf = vec![];
                 off += 2;
             } else {
-                out.push(Token::new(
-                    LineBreak,
+                line_buf.push(Token::new(
+                    Eof,
                     Span::new(start, LineCol::new(line, col)),
                     off,
                     off + 1,
                 ));
+                lines.push(line_buf);
+                line_buf = vec![];
                 off += 1;
             }
         } else if cn == '\n' {
             col = 0;
             line += 1;
-            out.push(Token::new(
-                LineBreak,
+            line_buf.push(Token::new(
+                Eof,
                 Span::new(start, LineCol::new(line, col)),
                 off,
                 off + 1,
             ));
+            lines.push(line_buf);
+            line_buf = vec![];
             off += 1;
         } else if cn.is_whitespace() {
             let (end, endch) = src[off..]
@@ -154,7 +161,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
                 .unwrap();
             let end = end + endch.len_utf8();
             col += end;
-            out.push(Token::new(
+            line_buf.push(Token::new(
                 Whitespace,
                 Span::new(start, LineCol::new(line, col)),
                 off,
@@ -164,7 +171,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
         } else {
             let len = cn.len_utf8();
             col += len;
-            out.push(Token::new(
+            line_buf.push(Token::new(
                 Invalid,
                 Span::new(start, LineCol::new(line, col)),
                 off,
@@ -173,13 +180,14 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<McTokenKind>> {
             off += len;
         }
     }
-    out.push(Token::new(
+    line_buf.push(Token::new(
         Eof,
         Span::new(LineCol::new(line, col), LineCol::new(line, col)),
         off,
         off,
     ));
-    return out;
+    lines.push(line_buf);
+    return lines;
 }
 
 #[cfg(test)]

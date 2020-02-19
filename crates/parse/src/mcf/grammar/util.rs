@@ -38,7 +38,7 @@ pub fn item_predicate(p: &mut McParser) {
 
 pub fn message(p: &mut McParser) {
     let mk = p.start(UnquotedString, StartInfo::None);
-    while !(p.at(Eof) || p.at(LineBreak)) {
+    while !(p.at(Eof)) {
         p.bump();
     }
     p.finish(mk);
@@ -220,7 +220,10 @@ pub fn float_tk(p: &mut McTokenParser) -> Option<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mcf::{parse, testing::format_astnode, McParser};
+    use crate::mcf::{
+        testing::{format_astnode, parse},
+        McParser,
+    };
     use insta::assert_snapshot;
 
     macro_rules! util_test {
@@ -232,7 +235,7 @@ mod tests {
         };
     }
 
-    fn test<F: FnOnce(&mut McParser)>(i: &str, f: F) -> String {
+    fn test<F: FnMut(&mut McParser)>(i: &str, f: F) -> String {
         format_astnode(&parse(i, f), 0)
     }
 

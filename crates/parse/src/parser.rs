@@ -95,24 +95,18 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         self.nth(0) == kind
     }
 
-    pub fn skip_linebreak(&mut self) {
-        if self.at(L::TokenKind::LINE_BREAK) {
-            self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
-        }
-    }
-
     pub fn bump(&mut self) {
         let tk = self.nth_tk(0);
         // Never progress past the EOF so there will always be one token in the slice
         // Don't progress over line breaks either so the parser wont crash and burn
-        if !self.at(L::TokenKind::EOF) && !self.at(L::TokenKind::LINE_BREAK) {
+        if !self.at(L::TokenKind::EOF) {
             self.push_event(Event::Token(tk));
             self.skip();
         }
     }
 
     pub fn skip(&mut self) {
-        if !self.at(L::TokenKind::EOF) && !self.at(L::TokenKind::LINE_BREAK) {
+        if !self.at(L::TokenKind::EOF) {
             self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
         }
     }
@@ -270,6 +264,16 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         for err in errs {
             self.push_event(Event::Error(err));
         }
+    }
+
+    pub fn change_tokens(&mut self, tks: &'t [Token<L::TokenKind>]) {
+        assert!(
+            self.tokens[0].end() == tks[0].start(),
+            "Token streams must be consecutive: {}, {}",
+            self.tokens[0].end(),
+            tks[0].start()
+        );
+        self.tokens = tks;
     }
 
     fn push_event(&mut self, evt: Event<L>) {

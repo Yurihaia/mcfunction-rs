@@ -39,7 +39,6 @@ pub enum McTokenKind {
     QuotedString, // Does not have to be terminated, and will end at the end of any line
     Word,         // String of letters or underscores
     Whitespace,   // Non linebreak whitespace
-    LineBreak,    // LF, CRLF, CR
     Digits,
     // Other
     Invalid, // Used to mark a lexing error
@@ -49,7 +48,6 @@ pub enum McTokenKind {
 impl TokenKind for McTokenKind {
     const WHITESPACE: Self = Self::Whitespace;
     const EOF: Self = Self::Eof;
-    const LINE_BREAK: Self = Self::LineBreak;
     const WORD: Self = Self::Word;
     const DELIMITERS: TokenSet<Self> = TokenSet::empty();
 }
@@ -99,7 +97,6 @@ impl fmt::Display for McTokenKind {
                 QuotedString => "Quoted String",
                 Word => "Word",
                 Whitespace => "Whitespace",
-                LineBreak => "Linebreak",
                 Digits => "Digits",
                 Invalid => "Invalid",
                 Eof => "EOF",

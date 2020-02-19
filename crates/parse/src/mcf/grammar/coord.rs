@@ -47,7 +47,7 @@ pub fn coord(p: &mut McParser) {
     p.expect(Whitespace);
     let pmk = p.start(CoordPart, StartInfo::None);
     p.eat_tokens(COORD_MODIFIER);
-    if !p.at_tokens(tokenset![Whitespace, LineBreak, Eof]) {
+    if !p.at_tokens(tokenset![Whitespace, Eof]) {
         float(p);
     }
     p.finish(pmk);
@@ -56,7 +56,7 @@ pub fn coord(p: &mut McParser) {
 
 #[cfg(test)]
 mod tests {
-    use crate::mcf::{parse, testing::format_astnode};
+    use crate::mcf::testing::{format_astnode, parse};
 
     use insta::assert_snapshot;
 
