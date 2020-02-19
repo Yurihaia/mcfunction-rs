@@ -1,0 +1,19 @@
+---
+source: crates/parse/src/mcf/grammar/selector.rs
+expression: "parse_selector(\"@r[type=!minecraft:pig]\")"
+---
+Group(Selector) at 0:0 - 0:23 {
+    Token(At) `@` at 0:0 - 0:1
+    Joined(SelectorModR) `r` at 0:1 - 0:2
+    Group(SelectorArgument) at 0:2 - 0:23 {
+        Token(LBracket) `[` at 0:2 - 0:3
+        Group(SelectorArgumentEntry) at 0:3 - 0:22 {
+            Joined(UnquotedString) `type` at 0:3 - 0:7
+            Token(Eq) `=` at 0:7 - 0:8
+            Token(Excl) `!` at 0:8 - 0:9
+            Joined(ResourceLocation) `minecraft:pig` at 0:9 - 0:22
+        }
+        Token(RBracket) `]` at 0:22 - 0:23
+    }
+}
+

@@ -1,27 +1,30 @@
 use crate::{
-    ast::{AstNode, GroupType, SyntaxKind},
+    ast::{AstNode, SyntaxKind},
     error::{ExpectedLit, ExpectedToken},
-    LineCol, ParseError, Span, Token, TokenKind, TokenSet,
+    syntax::TokenKind,
+    tokenset, LineCol, ParseError, Span, Token, TokenSet,
 };
 
-use mcf_util::DropBomb;
+use util::DropBomb;
 
 #[derive(Debug)]
-pub struct Parser<'t, 's> {
-    pub(crate) tokens: &'t [Token],
-    events: Vec<Event>,
+pub struct Parser<'t, 's, L: Language> {
+    pub(crate) tokens: &'t [Token<L::TokenKind>],
+    events: Vec<Event<L>>,
     src: &'s str,
     skip_ws: bool,
 }
 
-const DELIMITERS: TokenSet = TokenSet::singleton(TokenKind::LBracket)
-    .union(TokenSet::singleton(TokenKind::RBracket))
-    .union(TokenSet::singleton(TokenKind::LCurly))
-    .union(TokenSet::singleton(TokenKind::RCurly));
+pub trait Language: 'static {
+    type TokenKind: TokenKind;
+    type GroupType: std::fmt::Debug + Copy;
 
-impl<'t, 's> Parser<'t, 's> {
+    const ERROR_GROUP: Self::GroupType;
+}
+
+impl<'t, 's, L: Language> Parser<'t, 's, L> {
     // All tokens need to be from the same string slice, hence the unsafety
-    pub(crate) fn new(tokens: &'t [Token], src: &'s str) -> Self {
+    pub(crate) fn new(tokens: &'t [Token<L::TokenKind>], src: &'s str) -> Self {
         Parser {
             tokens,
             events: Vec::new(),
@@ -30,7 +33,7 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn start(&mut self, kind: GroupType, skip: StartInfo) -> Marker<'t> {
+    pub fn start(&mut self, kind: L::GroupType, skip: StartInfo) -> Marker<'t, L> {
         if self.skip_ws {
             self.skip_ws();
         }
@@ -48,7 +51,7 @@ impl<'t, 's> Parser<'t, 's> {
         mk
     }
 
-    pub fn finish(&mut self, mut marker: Marker<'t>) {
+    pub fn finish(&mut self, mut marker: Marker<'t, L>) {
         self.push_event(Event::End {
             linecol: self.tokens[0].span().start(),
             off: self.tokens[0].start(),
@@ -57,14 +60,14 @@ impl<'t, 's> Parser<'t, 's> {
         marker.3.defuse();
     }
 
-    pub fn cancel(&mut self, mut marker: Marker<'t>) {
+    pub fn cancel(&mut self, mut marker: Marker<'t, L>) {
         self.events.truncate(marker.1);
         self.tokens = marker.0;
         self.skip_ws = marker.2;
         marker.3.defuse();
     }
 
-    pub fn retype(&mut self, marker: &Marker<'t>, kind: GroupType, join: bool) {
+    pub fn retype(&mut self, marker: &Marker<'t, L>, kind: L::GroupType, join: bool) {
         match &mut self.events[marker.1] {
             Event::Start { join: j, kind: k } => {
                 *k = kind;
@@ -74,12 +77,12 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn nth(&self, off: usize) -> TokenKind {
+    pub fn nth(&self, off: usize) -> L::TokenKind {
         // If accessing past the end of the file, just return the EOF
         self.nth_tk(off).kind()
     }
 
-    pub(crate) fn nth_tk(&self, n: usize) -> Token {
+    pub(crate) fn nth_tk(&self, n: usize) -> Token<L::TokenKind> {
         assert!(n <= 1);
         match n {
             0 => next_tk(self.tokens, self.skip_ws)[0],
@@ -88,12 +91,12 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn at(&self, kind: TokenKind) -> bool {
+    pub fn at(&self, kind: L::TokenKind) -> bool {
         self.nth(0) == kind
     }
 
     pub fn skip_linebreak(&mut self) {
-        if self.at(TokenKind::LineBreak) {
+        if self.at(L::TokenKind::LINE_BREAK) {
             self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
         }
     }
@@ -102,19 +105,19 @@ impl<'t, 's> Parser<'t, 's> {
         let tk = self.nth_tk(0);
         // Never progress past the EOF so there will always be one token in the slice
         // Don't progress over line breaks either so the parser wont crash and burn
-        if !self.at(TokenKind::Eof) && !self.at(TokenKind::LineBreak) {
+        if !self.at(L::TokenKind::EOF) && !self.at(L::TokenKind::LINE_BREAK) {
             self.push_event(Event::Token(tk));
             self.skip();
         }
     }
 
     pub fn skip(&mut self) {
-        if !self.at(TokenKind::Eof) && !self.at(TokenKind::LineBreak) {
+        if !self.at(L::TokenKind::EOF) && !self.at(L::TokenKind::LINE_BREAK) {
             self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
         }
     }
 
-    pub fn eat(&mut self, kind: TokenKind) -> bool {
+    pub fn eat(&mut self, kind: L::TokenKind) -> bool {
         if self.at(kind) {
             self.bump();
             true
@@ -123,7 +126,7 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn eat_tokens(&mut self, set: TokenSet) -> bool {
+    pub fn eat_tokens(&mut self, set: TokenSet<L::TokenKind>) -> bool {
         if self.at_tokens(set) {
             self.bump();
             true
@@ -132,7 +135,7 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn expect(&mut self, kind: TokenKind) -> bool {
+    pub fn expect(&mut self, kind: L::TokenKind) -> bool {
         if !self.eat(kind) {
             self.events
                 .push(Event::Error(ExpectedToken::new(vec![kind]).into()));
@@ -143,8 +146,8 @@ impl<'t, 's> Parser<'t, 's> {
     }
 
     // Needed for context aware keywords
-    pub fn expect_keyword(&mut self, ex: &'static [(&'static str, GroupType)]) -> bool {
-        if self.at(TokenKind::Word) {
+    pub fn expect_keyword(&mut self, ex: &'static [(&'static str, L::GroupType)]) -> bool {
+        if self.at(L::TokenKind::WORD) {
             let tk = self.nth_tk(0).string(self.src);
             for (x, g) in ex {
                 if tk == *x {
@@ -158,15 +161,15 @@ impl<'t, 's> Parser<'t, 's> {
                 .push(Event::Error(ExpectedLit::from_slice(ex).into()));
             false
         } else {
-            self.expect(TokenKind::Word);
+            self.expect(L::TokenKind::WORD);
             false
         }
     }
 
-    pub fn try_token<F: FnOnce(&mut TokenParser) -> Option<()>>(
+    pub fn try_token<F: FnOnce(&mut TokenParser<L>) -> Option<()>>(
         &mut self,
         f: F,
-        kind: GroupType,
+        kind: L::GroupType,
     ) -> bool {
         let mk = self.start(kind, StartInfo::Join);
         if f(&mut TokenParser(self)).is_some() {
@@ -178,14 +181,14 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn at_token<F: FnOnce(&mut TokenParser) -> Option<()>>(&self, f: F) -> bool {
+    pub fn at_token<F: FnOnce(&mut TokenParser<L>) -> Option<()>>(&self, f: F) -> bool {
         let mut parser = Parser {
             tokens: self.tokens,
             events: Vec::new(),
             src: self.src,
             skip_ws: self.skip_ws,
         };
-        let mk = parser.start(GroupType::Error, StartInfo::Join);
+        let mk = parser.start(L::ERROR_GROUP, StartInfo::Join);
         if f(&mut TokenParser(&mut parser)).is_some() {
             parser.cancel(mk);
             true
@@ -195,8 +198,8 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn at_keyword(&self, ex: &[(&str, GroupType)]) -> bool {
-        if self.at(TokenKind::Word) {
+    pub fn at_keyword(&self, ex: &[(&str, L::GroupType)]) -> bool {
+        if self.at(L::TokenKind::WORD) {
             let tk = self.nth_tk(0).string(self.src);
             for (x, _) in ex {
                 if tk == *x {
@@ -209,8 +212,8 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn eat_keyword(&mut self, ex: &'static [(&'static str, GroupType)]) -> bool {
-        if self.at(TokenKind::Word) {
+    pub fn eat_keyword(&mut self, ex: &'static [(&'static str, L::GroupType)]) -> bool {
+        if self.at(L::TokenKind::WORD) {
             let tk = self.nth_tk(0).string(self.src);
             for (x, g) in ex {
                 if tk == *x {
@@ -226,17 +229,17 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn at_tokens(&self, set: TokenSet) -> bool {
-        set.contains(self.nth_tk(0).kind())
+    pub fn at_tokens(&self, set: TokenSet<L::TokenKind>) -> bool {
+        tokenset!(self.nth_tk(0).kind() => set)
     }
 
-    pub fn err_recover(&mut self, group: GroupType, set: TokenSet) {
+    pub fn err_recover(&mut self, group: L::GroupType, set: TokenSet<L::TokenKind>) {
         self.error(group);
         self.bump_recover(set);
     }
 
-    pub fn bump_recover(&mut self, set: TokenSet) -> bool {
-        if !self.at_tokens(DELIMITERS.union(set)) {
+    pub fn bump_recover(&mut self, set: TokenSet<L::TokenKind>) -> bool {
+        if !self.at_tokens(L::TokenKind::DELIMITERS.union(set)) {
             self.bump();
             false
         } else {
@@ -244,7 +247,7 @@ impl<'t, 's> Parser<'t, 's> {
         }
     }
 
-    pub fn lookahead(&mut self) -> Lookahead<'_, 't, 's> {
+    pub fn lookahead(&mut self) -> Lookahead<'_, 't, 's, L> {
         Lookahead {
             parser: self,
             tried: Vec::new(),
@@ -254,42 +257,42 @@ impl<'t, 's> Parser<'t, 's> {
     }
 
     pub fn skip_ws(&mut self) {
-        if self.tokens[0].kind() == TokenKind::Whitespace {
+        if self.tokens[0].kind() == L::TokenKind::WHITESPACE {
             self.tokens = &self.tokens[1..];
         }
     }
 
-    pub fn error(&mut self, err: GroupType) {
-        self.push_event(Event::Error(err.into()))
+    pub fn error(&mut self, err: L::GroupType) {
+        self.push_event(Event::Error(ParseError::Group(err)))
     }
 
-    pub fn add_errors(&mut self, errs: Vec<ParseError>) {
+    pub fn add_errors(&mut self, errs: Vec<ParseError<L>>) {
         for err in errs {
             self.push_event(Event::Error(err));
         }
     }
 
-    fn push_event(&mut self, evt: Event) {
+    fn push_event(&mut self, evt: Event<L>) {
         self.events.push(evt);
     }
 
-    pub fn build(self) -> AstNode<'s> {
+    pub fn build(self) -> AstNode<'s, L> {
         #[derive(Debug)]
-        struct ParentNode {
-            kind: Option<GroupType>,
-            children: Vec<PartialNode>,
+        struct ParentNode<L: Language> {
+            kind: Option<L::GroupType>,
+            children: Vec<PartialNode<L>>,
             join: bool,
             spans: Option<(Span, usize, usize)>,
         }
 
         #[derive(Debug)]
-        enum PartialNode {
-            Error(ParseError),
-            Group(ParentNode),
-            Token(Token),
+        enum PartialNode<L: Language> {
+            Error(ParseError<L>),
+            Group(ParentNode<L>),
+            Token(Token<L::TokenKind>),
         }
 
-        let mut stack: Vec<ParentNode> = vec![ParentNode {
+        let mut stack: Vec<ParentNode<L>> = vec![ParentNode {
             kind: None,
             children: Vec::new(),
             join: false,
@@ -343,7 +346,7 @@ impl<'t, 's> Parser<'t, 's> {
             }
         }
 
-        fn convert<'a>(node: ParentNode, src: &'a str) -> AstNode<'a> {
+        fn convert<'a, L: Language>(node: ParentNode<L>, src: &'a str) -> AstNode<'a, L> {
             let (span, start, end) = node.spans.unwrap();
             let mut children = Vec::with_capacity(node.children.len());
             let mut iter = node.children.into_iter().peekable();
@@ -440,22 +443,22 @@ impl<'t, 's> Parser<'t, 's> {
     }
 }
 
-pub struct TokenParser<'p, 't, 's>(&'p mut Parser<'t, 's>);
+pub struct TokenParser<'p, 't, 's, L: Language>(&'p mut Parser<'t, 's, L>);
 
-impl<'p, 't, 's> TokenParser<'p, 't, 's> {
-    pub fn eat(&mut self, kind: TokenKind) -> bool {
+impl<'p, 't, 's, L: Language> TokenParser<'p, 't, 's, L> {
+    pub fn eat(&mut self, kind: L::TokenKind) -> bool {
         self.expect(kind).is_some()
     }
 
-    pub fn eat_tokens(&mut self, set: TokenSet) -> bool {
+    pub fn eat_tokens(&mut self, set: TokenSet<L::TokenKind>) -> bool {
         self.expect_tokens(set).is_some()
     }
 
-    pub fn eat_kw(&mut self, kws: &'static [(&'static str, GroupType)]) -> bool {
+    pub fn eat_kw(&mut self, kws: &'static [(&'static str, L::GroupType)]) -> bool {
         self.0.eat_keyword(kws)
     }
 
-    pub fn expect(&mut self, kind: TokenKind) -> Option<()> {
+    pub fn expect(&mut self, kind: L::TokenKind) -> Option<()> {
         if self.0.at(kind) {
             self.0.bump();
             Some(())
@@ -464,7 +467,7 @@ impl<'p, 't, 's> TokenParser<'p, 't, 's> {
         }
     }
 
-    pub fn expect_tokens(&mut self, set: TokenSet) -> Option<()> {
+    pub fn expect_tokens(&mut self, set: TokenSet<L::TokenKind>) -> Option<()> {
         if self.0.at_tokens(set) {
             self.0.bump();
             Some(())
@@ -473,7 +476,7 @@ impl<'p, 't, 's> TokenParser<'p, 't, 's> {
         }
     }
 
-    pub fn expect_kw(&mut self, kws: &'static [(&'static str, GroupType)]) -> Option<()> {
+    pub fn expect_kw(&mut self, kws: &'static [(&'static str, L::GroupType)]) -> Option<()> {
         if self.0.at_keyword(kws) {
             self.0.bump();
             Some(())
@@ -482,14 +485,14 @@ impl<'p, 't, 's> TokenParser<'p, 't, 's> {
         }
     }
 
-    pub fn nth(&self, n: usize) -> TokenKind {
+    pub fn nth(&self, n: usize) -> L::TokenKind {
         assert!(n <= 1);
         self.0.nth(n)
     }
 }
 
 #[derive(Debug)]
-pub struct Marker<'t>(&'t [Token], usize, bool, DropBomb<&'t str>);
+pub struct Marker<'t, L: Language>(&'t [Token<L::TokenKind>], usize, bool, DropBomb<&'t str>);
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum StartInfo {
@@ -499,15 +502,15 @@ pub enum StartInfo {
 }
 
 #[derive(Debug)]
-pub struct Lookahead<'p, 't, 's> {
-    parser: &'p mut Parser<'t, 's>,
-    tried: Vec<TokenKind>,
-    kw: Vec<(&'static str, GroupType)>,
-    groups: Vec<GroupType>,
+pub struct Lookahead<'p, 't, 's, L: Language> {
+    parser: &'p mut Parser<'t, 's, L>,
+    tried: Vec<L::TokenKind>,
+    kw: Vec<(&'static str, L::GroupType)>,
+    groups: Vec<L::GroupType>,
 }
 
-impl<'p, 't, 's> Lookahead<'p, 't, 's> {
-    pub fn at(&mut self, kind: TokenKind) -> bool {
+impl<'p, 't, 's, L: Language> Lookahead<'p, 't, 's, L> {
+    pub fn at(&mut self, kind: L::TokenKind) -> bool {
         if self.parser.at(kind) {
             true
         } else {
@@ -516,11 +519,11 @@ impl<'p, 't, 's> Lookahead<'p, 't, 's> {
         }
     }
 
-    pub fn at_tks(&self, kind: TokenSet) -> bool {
+    pub fn at_tks(&self, kind: TokenSet<L::TokenKind>) -> bool {
         self.parser.at_tokens(kind)
     }
 
-    pub fn at_keyword(&mut self, kw: &'static str, gt: GroupType) -> bool {
+    pub fn at_keyword(&mut self, kw: &'static str, gt: L::GroupType) -> bool {
         if self.parser.at_keyword(&[(kw, gt)]) {
             true
         } else {
@@ -529,7 +532,7 @@ impl<'p, 't, 's> Lookahead<'p, 't, 's> {
         }
     }
 
-    pub fn at_keywords(&mut self, ex: &[(&'static str, GroupType)]) -> bool {
+    pub fn at_keywords(&mut self, ex: &[(&'static str, L::GroupType)]) -> bool {
         if self.parser.at_keyword(ex) {
             true
         } else {
@@ -538,7 +541,7 @@ impl<'p, 't, 's> Lookahead<'p, 't, 's> {
         }
     }
 
-    pub fn group_error(&mut self, gt: GroupType) {
+    pub fn group_error(&mut self, gt: L::GroupType) {
         self.groups.push(gt);
     }
 
@@ -550,32 +553,34 @@ impl<'p, 't, 's> Lookahead<'p, 't, 's> {
             .events
             .push(Event::Error(ExpectedLit::new(self.kw).into()));
         for x in self.groups {
-            self.parser.events.push(Event::Error(x.into()));
+            self.parser
+                .events
+                .push(Event::Error(ParseError::Group(x.into())));
         }
     }
 
-    pub fn get_errors(self) -> Vec<ParseError> {
+    pub fn get_errors(self) -> Vec<ParseError<L>> {
         let mut out = vec![
             ExpectedToken::new(self.tried).into(),
             ExpectedLit::new(self.kw).into(),
         ];
         for x in self.groups {
-            out.push(x.into());
+            out.push(ParseError::Group(x.into()));
         }
         out
     }
 }
 
 #[derive(Debug)]
-enum Event {
-    Start { kind: GroupType, join: bool },
+enum Event<L: Language> {
+    Start { kind: L::GroupType, join: bool },
     End { linecol: LineCol, off: usize },
-    Token(Token),
-    Error(ParseError),
+    Token(Token<L::TokenKind>),
+    Error(ParseError<L>),
 }
 
-fn next_tk(src: &[Token], skip: bool) -> &[Token] {
-    if skip && src[0].kind() == TokenKind::Whitespace {
+fn next_tk<T: TokenKind>(src: &[Token<T>], skip: bool) -> &[Token<T>] {
+    if skip && src[0].kind() == T::WHITESPACE {
         &src[1..]
     } else {
         src

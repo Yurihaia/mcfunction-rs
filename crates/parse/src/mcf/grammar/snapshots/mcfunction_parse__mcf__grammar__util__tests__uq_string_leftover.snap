@@ -1,0 +1,6 @@
+---
+source: crates/parse/src/mcf/grammar/util.rs
+expression: "test(\"hello_word; rest of input\", uq_string)"
+---
+Joined(UnquotedString) `hello_word` at 0:0 - 0:10
+

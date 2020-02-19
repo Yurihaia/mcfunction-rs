@@ -1,7 +1,0 @@
----
-source: crates/parse/src/lexer.rs
-expression: "format_sk_list(tokenize_str(\"sOmE_IdEntiFier\"))"
----
-Word `sOmE_IdEntiFier` at 0:0 - 0:15
-Eof `` at 0:15 - 0:15
-

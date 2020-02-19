@@ -9,7 +9,7 @@ repository = "https://github.com/Yurihaia/mcfunction-rs/tree/master/crates/parse
 description = "Parser for Minecraft commands and function files"
 
 [dependencies]
-mcf-util = { path = "../util" }
+util = { path = "../util" }
 serde = "1.0.104"
 serde_json = "1.0.46"
 

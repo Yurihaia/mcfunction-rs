@@ -1,6 +1,0 @@
----
-source: crates/parse/src/grammar/util.rs
-expression: "test(\"hello_world\", uq_string)"
----
-Joined(UnquotedString) `hello_world` at 0:0 - 0:11
-

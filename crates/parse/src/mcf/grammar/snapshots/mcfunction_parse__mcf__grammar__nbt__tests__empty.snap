@@ -1,0 +1,10 @@
+---
+source: crates/parse/src/mcf/grammar/nbt.rs
+expression: "parse_path(\"\")"
+---
+Group(NbtPath) at 0:0 - 0:0 {
+    Group(NbtPathSegment) at 0:0 - 0:0 {
+        Error `Error while parsing 'NbtPathSegment'` at 0:0 - 0:0
+    }
+}
+

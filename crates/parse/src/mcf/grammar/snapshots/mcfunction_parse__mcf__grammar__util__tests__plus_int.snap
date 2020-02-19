@@ -1,0 +1,6 @@
+---
+source: crates/parse/src/mcf/grammar/util.rs
+expression: "test(\"+5356\", integer)"
+---
+Joined(Integer) `+5356` at 0:0 - 0:5
+

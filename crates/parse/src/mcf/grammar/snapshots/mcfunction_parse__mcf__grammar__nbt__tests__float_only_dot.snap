@@ -1,0 +1,6 @@
+---
+source: crates/parse/src/mcf/grammar/nbt.rs
+expression: "parse_nbt(\".\")"
+---
+Joined(UnquotedString) `.` at 0:0 - 0:1
+

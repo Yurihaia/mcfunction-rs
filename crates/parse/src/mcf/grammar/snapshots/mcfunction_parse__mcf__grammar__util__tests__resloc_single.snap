@@ -1,0 +1,6 @@
+---
+source: crates/parse/src/mcf/grammar/util.rs
+expression: "test(\"my_location\", resource_location)"
+---
+Joined(ResourceLocation) `my_location` at 0:0 - 0:11
+

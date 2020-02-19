@@ -1,0 +1,7 @@
+---
+source: crates/parse/src/mcf/lexer.rs
+expression: "format_sk_list(super::tokenize_str(r#\"\"hello \\\"\\q\\u\\o\\t\\e\\d\\\\\\\" world\"\"#),\n               r#\"\"hello \\\"\\q\\u\\o\\t\\e\\d\\\\\\\" world\"\"#)"
+---
+QuotedString `"hello \"\q\u\o\t\e\d\\\" world"` at 0:0 - 0:32
+Eof `` at 0:32 - 0:32
+

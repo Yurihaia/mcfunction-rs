@@ -1,7 +1,0 @@
----
-source: crates/parse/src/lexer.rs
-expression: "format_sk_list(super::tokenize_str(\"   \\t    \\t\\t\\t  \"), \"   \\t    \\t\\t\\t  \")"
----
-Whitespace `   \t    \t\t\t  ` at 0:0 - 0:13
-Eof `` at 0:13 - 0:13
-

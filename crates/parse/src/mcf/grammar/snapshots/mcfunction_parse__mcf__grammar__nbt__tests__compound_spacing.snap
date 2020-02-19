@@ -1,0 +1,24 @@
+---
+source: crates/parse/src/mcf/grammar/nbt.rs
+expression: "parse_nbt(\"{\\tfoo  :1564 ,  \\t   bar:420   }\")"
+---
+Group(NbtCompound) at 0:0 - 0:31 {
+    Token(LCurly) `{` at 0:0 - 0:1
+    Group(NbtCompoundEntry) at 0:2 - 0:12 {
+        Joined(UnquotedString) `foo` at 0:2 - 0:5
+        Token(Colon) `:` at 0:7 - 0:8
+        Group(NbtNumber) at 0:8 - 0:12 {
+            Joined(Float) `1564` at 0:8 - 0:12
+        }
+    }
+    Token(Comma) `,` at 0:13 - 0:14
+    Group(NbtCompoundEntry) at 0:20 - 0:27 {
+        Joined(UnquotedString) `bar` at 0:20 - 0:23
+        Token(Colon) `:` at 0:23 - 0:24
+        Group(NbtNumber) at 0:24 - 0:27 {
+            Joined(Float) `420` at 0:24 - 0:27
+        }
+    }
+    Token(RCurly) `}` at 0:30 - 0:31
+}
+

@@ -1,0 +1,11 @@
+---
+source: crates/parse/src/mcf/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"{ unclosed group\"), \"{ unclosed group\")"
+---
+LCurly `{` at 0:0 - 0:1
+Whitespace ` ` at 0:1 - 0:2
+Word `unclosed` at 0:2 - 0:10
+Whitespace ` ` at 0:10 - 0:11
+Word `group` at 0:11 - 0:16
+Eof `` at 0:16 - 0:16
+

@@ -1,0 +1,33 @@
+---
+source: crates/parse/src/mcf/grammar/selector.rs
+expression: "parse_selector(\"@s[tag=hello,tag=goodbye,scores={}]\")"
+---
+Group(Selector) at 0:0 - 0:35 {
+    Token(At) `@` at 0:0 - 0:1
+    Joined(SelectorModS) `s` at 0:1 - 0:2
+    Group(SelectorArgument) at 0:2 - 0:35 {
+        Token(LBracket) `[` at 0:2 - 0:3
+        Group(SelectorArgumentEntry) at 0:3 - 0:12 {
+            Joined(UnquotedString) `tag` at 0:3 - 0:6
+            Token(Eq) `=` at 0:6 - 0:7
+            Joined(ResourceLocation) `hello` at 0:7 - 0:12
+        }
+        Token(Comma) `,` at 0:12 - 0:13
+        Group(SelectorArgumentEntry) at 0:13 - 0:24 {
+            Joined(UnquotedString) `tag` at 0:13 - 0:16
+            Token(Eq) `=` at 0:16 - 0:17
+            Joined(ResourceLocation) `goodbye` at 0:17 - 0:24
+        }
+        Token(Comma) `,` at 0:24 - 0:25
+        Group(SelectorArgumentEntry) at 0:25 - 0:34 {
+            Joined(UnquotedString) `scores` at 0:25 - 0:31
+            Token(Eq) `=` at 0:31 - 0:32
+            Group(SelectorArgumentMap) at 0:32 - 0:34 {
+                Token(LCurly) `{` at 0:32 - 0:33
+                Token(RCurly) `}` at 0:33 - 0:34
+            }
+        }
+        Token(RBracket) `]` at 0:34 - 0:35
+    }
+}
+

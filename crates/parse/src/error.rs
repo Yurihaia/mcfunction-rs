@@ -1,22 +1,22 @@
-use crate::{GroupType, TokenKind};
+use crate::{parser::Language, syntax::TokenKind};
 
 use std::borrow::Cow;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ExpectedToken(Vec<TokenKind>);
+pub struct ExpectedToken<T: TokenKind>(Vec<T>);
 
-impl ExpectedToken {
-    pub(crate) fn new(expected: Vec<TokenKind>) -> Self {
+impl<T: TokenKind> ExpectedToken<T> {
+    pub(crate) fn new(expected: Vec<T>) -> Self {
         ExpectedToken(expected)
     }
 
-    pub fn expected(&self) -> &[TokenKind] {
+    pub fn expected(&self) -> &[T] {
         &self.0
     }
 }
 
-impl fmt::Display for ExpectedToken {
+impl<T: TokenKind> fmt::Display for ExpectedToken<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Expected one of ")?;
         for (i, x) in self.expected().iter().enumerate() {
@@ -31,23 +31,23 @@ impl fmt::Display for ExpectedToken {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ExpectedLit(Cow<'static, [(&'static str, GroupType)]>);
+pub struct ExpectedLit<L: Language>(Cow<'static, [(&'static str, L::GroupType)]>);
 
-impl ExpectedLit {
-    pub(crate) fn new(expected: Vec<(&'static str, GroupType)>) -> Self {
+impl<L: Language> ExpectedLit<L> {
+    pub(crate) fn new(expected: Vec<(&'static str, L::GroupType)>) -> Self {
         ExpectedLit(Cow::Owned(expected))
     }
 
-    pub(crate) fn from_slice(expected: &'static [(&'static str, GroupType)]) -> Self {
+    pub(crate) fn from_slice(expected: &'static [(&'static str, L::GroupType)]) -> Self {
         ExpectedLit(Cow::Borrowed(expected))
     }
 
-    pub fn expected(&self) -> &[(&str, GroupType)] {
+    pub fn expected(&self) -> &[(&str, L::GroupType)] {
         &self.0
     }
 }
 
-impl fmt::Display for ExpectedLit {
+impl<L: Language> fmt::Display for ExpectedLit<L> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Expected one of ")?;
         for (i, (x, _)) in self.expected().iter().enumerate() {
@@ -62,13 +62,13 @@ impl fmt::Display for ExpectedLit {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ParseError {
-    Token(ExpectedToken),
-    Lit(ExpectedLit),
-    Group(GroupType),
+pub enum ParseError<L: Language> {
+    Token(ExpectedToken<L::TokenKind>),
+    Lit(ExpectedLit<L>),
+    Group(L::GroupType),
 }
 
-impl fmt::Display for ParseError {
+impl<L: Language> fmt::Display for ParseError<L> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ParseError::*;
 
@@ -81,20 +81,14 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl From<ExpectedLit> for ParseError {
-    fn from(it: ExpectedLit) -> ParseError {
+impl<L: Language> From<ExpectedLit<L>> for ParseError<L> {
+    fn from(it: ExpectedLit<L>) -> ParseError<L> {
         ParseError::Lit(it)
     }
 }
 
-impl From<ExpectedToken> for ParseError {
-    fn from(it: ExpectedToken) -> ParseError {
+impl<L: Language> From<ExpectedToken<L::TokenKind>> for ParseError<L> {
+    fn from(it: ExpectedToken<L::TokenKind>) -> ParseError<L> {
         ParseError::Token(it)
-    }
-}
-
-impl From<GroupType> for ParseError {
-    fn from(it: GroupType) -> ParseError {
-        ParseError::Group(it)
     }
 }

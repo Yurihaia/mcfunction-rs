@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "crates/parse",
-    "crates/data",
+    "crates/lsp_server",
     "crates/util"
 ]
 
@@ -16,10 +16,10 @@ repository = "https://github.com/Yurihaia/mcfunction-rs"
 description = "A set of libraries for tools using Minecraft commands"
 
 [features]
-default = [ "parse", "data" ]
+default = [ "parse", "lsp-server" ]
 parse = [ "mcfunction-parse" ]
-data = [ "mcfunction-data" ]
+lsp-server = [ "mcfunction-lsp-server" ]
 
 [dependencies]
 mcfunction-parse = { path = "crates/parse", version = "0.0.1", optional = true }
-mcfunction-data = { path = "crates/data", version = "0.0.1", optional = true }
+mcfunction-lsp-server = { path = "crates/lsp_server", version = "0.0.1", optional = true }

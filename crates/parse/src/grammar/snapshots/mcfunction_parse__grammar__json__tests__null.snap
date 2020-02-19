@@ -1,6 +1,0 @@
----
-source: crates/parse/src/grammar/json.rs
-expression: "parse_json(\"null\")"
----
-Joined(JsonNull) `null` at 0:0 - 0:4
-

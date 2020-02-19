@@ -1,0 +1,8 @@
+---
+source: crates/parse/src/mcf/grammar/nbt.rs
+expression: "parse_nbt(\"+2.718281828\")"
+---
+Group(NbtNumber) at 0:0 - 0:12 {
+    Joined(Float) `+2.718281828` at 0:0 - 0:12
+}
+

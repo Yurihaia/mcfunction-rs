@@ -1,107 +1,29 @@
-use crate::{ParseError, Span, TokenKind};
-
-use mcf_util::commands::Index;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum GroupType {
-    CommandNode(Index),
-    Command,
-    // NBT groups
-    NbtCompound,
-    NbtSequence,
-    NbtNumber,
-    NbtString,
-    NbtBoolean,
-    // NBT Keywords
-    NbtSuffixB,
-    NbtSuffixS,
-    NbtSuffixL,
-    NbtSuffixF,
-    NbtSuffixD,
-    NbtPrefixB,
-    NbtPrefixI,
-    NbtPrefixL,
-    // NBT Compound
-    NbtCompoundEntry,
-
-    NbtPath,
-    NbtPathSegment,
-    NbtPathIndex,
-
-    // Selector groups
-    Selector,
-    SelectorArgument,
-    SelectorArgumentEntry,
-    SelectorArgumentMap,
-    SelectorArgumentMapEntry,
-    // Selector keywords
-    SelectorModP,
-    SelectorModA,
-    SelectorModR,
-    SelectorModS,
-    SelectorModE,
-
-    // Block states
-    BlockState,
-    BlockStateArguments,
-
-    ItemStack,
-    ItemPredicate,
-
-    Comment,
-
-    Function,
-
-    JsonObject,
-    JsonObjectEntry,
-    JsonList,
-    JsonNull,
-
-    Integer,
-    Float,
-    UnquotedString,
-    ResourceLocation,
-    Range,
-    Uuid,
-    Time,
-
-    TimeS,
-    TimeT,
-    TimeD,
-
-    Coord,
-    CoordPart,
-
-    // Keywords
-    BooleanTrue,
-    BooleanFalse,
-
-    FloatSciExpUpper,
-    FloatSciExpLower,
-
-    // Special error type that signifies an error
-    Error,
-}
+use crate::{parser::Language, ParseError, Span};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SyntaxKind {
+pub enum SyntaxKind<L: Language> {
     Root,
-    Group(GroupType),
-    Joined(GroupType),
-    Token(TokenKind),
-    Error(ParseError),
+    Group(L::GroupType),
+    Joined(L::GroupType),
+    Token(L::TokenKind),
+    Error(ParseError<L>),
 }
 
 #[derive(Debug)]
-pub struct AstNode<'a> {
-    kind: SyntaxKind,
+pub struct AstNode<'a, L: Language> {
+    kind: SyntaxKind<L>,
     string: &'a str,
     span: Span,
-    children: Vec<AstNode<'a>>,
+    children: Vec<AstNode<'a, L>>,
 }
 
-impl<'a> AstNode<'a> {
-    pub fn new(kind: SyntaxKind, children: Vec<AstNode<'a>>, string: &'a str, span: Span) -> Self {
+impl<'a, L: Language> AstNode<'a, L> {
+    pub fn new(
+        kind: SyntaxKind<L>,
+        children: Vec<AstNode<'a, L>>,
+        string: &'a str,
+        span: Span,
+    ) -> Self {
         AstNode {
             kind,
             string,
@@ -110,11 +32,11 @@ impl<'a> AstNode<'a> {
         }
     }
 
-    pub fn kind(&self) -> &SyntaxKind {
+    pub fn kind(&self) -> &SyntaxKind<L> {
         &self.kind
     }
 
-    pub fn children(&self) -> &[AstNode<'a>] {
+    pub fn children(&self) -> &[AstNode<'a, L>] {
         &self.children
     }
 

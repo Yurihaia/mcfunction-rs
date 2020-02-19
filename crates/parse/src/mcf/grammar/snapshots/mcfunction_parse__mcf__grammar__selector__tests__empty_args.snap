@@ -1,0 +1,13 @@
+---
+source: crates/parse/src/mcf/grammar/selector.rs
+expression: "parse_selector(\"@e[]\")"
+---
+Group(Selector) at 0:0 - 0:4 {
+    Token(At) `@` at 0:0 - 0:1
+    Joined(SelectorModE) `e` at 0:1 - 0:2
+    Group(SelectorArgument) at 0:2 - 0:4 {
+        Token(LBracket) `[` at 0:2 - 0:3
+        Token(RBracket) `]` at 0:3 - 0:4
+    }
+}
+

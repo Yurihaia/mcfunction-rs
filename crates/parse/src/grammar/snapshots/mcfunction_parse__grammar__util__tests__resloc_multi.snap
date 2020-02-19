@@ -1,6 +1,0 @@
----
-source: crates/parse/src/grammar/util.rs
-expression: "test(\"path/to/somethig\", resource_location)"
----
-Joined(ResourceLocation) `path/to/somethig` at 0:0 - 0:16
-

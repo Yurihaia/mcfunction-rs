@@ -1,0 +1,16 @@
+---
+source: crates/parse/src/mcf/grammar/nbt.rs
+expression: "parse_nbt(\"['hello', 123, true]\")"
+---
+Group(NbtSequence) at 0:0 - 0:20 {
+    Token(LBracket) `[` at 0:0 - 0:1
+    Token(QuotedString) `'hello'` at 0:1 - 0:8
+    Token(Comma) `,` at 0:8 - 0:9
+    Group(NbtNumber) at 0:10 - 0:13 {
+        Joined(Float) `123` at 0:10 - 0:13
+    }
+    Token(Comma) `,` at 0:13 - 0:14
+    Joined(NbtBoolean) `true` at 0:15 - 0:19
+    Token(RBracket) `]` at 0:19 - 0:20
+}
+

@@ -1,0 +1,18 @@
+---
+source: crates/parse/src/mcf/grammar/coord.rs
+expression: "parse_coord(\"0 1 2\")"
+---
+Group(Coord) at 0:0 - 0:5 {
+    Group(CoordPart) at 0:0 - 0:1 {
+        Joined(Float) `0` at 0:0 - 0:1
+    }
+    Token(Whitespace) ` ` at 0:1 - 0:2
+    Group(CoordPart) at 0:2 - 0:3 {
+        Joined(Float) `1` at 0:2 - 0:3
+    }
+    Token(Whitespace) ` ` at 0:3 - 0:4
+    Group(CoordPart) at 0:4 - 0:5 {
+        Joined(Float) `2` at 0:4 - 0:5
+    }
+}
+

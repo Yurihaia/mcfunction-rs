@@ -1,16 +1,16 @@
 use super::Span;
 
-use std::fmt;
+use std::marker::PhantomData;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Token {
+pub struct Token<K: TokenKind> {
     span: Span,
-    kind: TokenKind,
+    kind: K,
     off: (usize, usize),
 }
 
-impl Token {
-    pub fn new(kind: TokenKind, span: Span, start: usize, end: usize) -> Self {
+impl<K: TokenKind> Token<K> {
+    pub fn new(kind: K, span: Span, start: usize, end: usize) -> Self {
         Token {
             kind,
             span,
@@ -22,7 +22,7 @@ impl Token {
         self.span
     }
 
-    pub fn kind(&self) -> TokenKind {
+    pub fn kind(&self) -> K {
         self.kind
     }
 
@@ -39,135 +39,54 @@ impl Token {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-#[repr(u8)]
-pub enum TokenKind {
-    // Single Character Punctuation
-    Comma = 0,
-    Dot,
-    Colon,
-    Semicolon,
-    At,
-    Excl,
-    Eq,
-    Lt,
-    Gt,
-    Slash,
-    Tilde,
-    Caret,
-    Plus,
-    Dash,
-    Hash,
-    // Double Character Punctuation
-    DotDot,
-    Lte,
-    Gte,
-    Swap,
-    AddAssign,
-    SubAssign,
-    MulAssign,
-    DivAssign,
-    ModAssign,
-    // Delimiters
-    LBracket,
-    RBracket,
-    LCurly,
-    RCurly,
-    // Arbitrary Length
-    QuotedString, // Does not have to be terminated, and will end at the end of any line
-    Word,         // String of letters or underscores
-    Whitespace,   // Non linebreak whitespace
-    LineBreak,    // LF, CRLF, CR
-    Digits,
-    // Other
-    Invalid, // Used to mark a lexing error
-    Eof,     // Used to mark the end of a file
-}
-
-impl fmt::Display for TokenKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use TokenKind::*;
-
-        write!(
-            f,
-            "{}",
-            match self {
-                Comma => ",",
-                Dot => ".",
-                Colon => ":",
-                Semicolon => ";",
-                At => "@",
-                Excl => "!",
-                Eq => "=",
-                Lt => "<",
-                Gt => ">",
-                Hash => "#",
-                Slash => "/",
-                Tilde => "~",
-                Caret => "^",
-                Plus => "+",
-                Dash => "-",
-                DotDot => "..",
-                Lte => "<=",
-                Gte => ">=",
-                Swap => "><",
-                AddAssign => "+=",
-                SubAssign => "-=",
-                MulAssign => "*=",
-                DivAssign => "/=",
-                ModAssign => "%=",
-                LBracket => "[",
-                RBracket => "]",
-                LCurly => "{",
-                RCurly => "}",
-                QuotedString => "Quoted String",
-                Word => "Word",
-                Whitespace => "Whitespace",
-                LineBreak => "Linebreak",
-                Digits => "Digits",
-                Invalid => "Invalid",
-                Eof => "EOF",
-            }
-        )
-    }
+pub trait TokenKind: Sized + std::fmt::Debug + std::fmt::Display + Copy + Eq + Into<u8> {
+    const WHITESPACE: Self;
+    const EOF: Self;
+    const LINE_BREAK: Self;
+    const WORD: Self;
+    const DELIMITERS: TokenSet<Self>;
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
-pub struct TokenSet(u128);
+pub struct TokenSet<T>(u128, PhantomData<*const T>);
 
-impl TokenSet {
+impl<T> TokenSet<T> {
     pub const fn empty() -> Self {
-        TokenSet(0)
+        TokenSet(0, PhantomData)
     }
 
-    pub const fn singleton(kind: TokenKind) -> Self {
-        TokenSet(Self::flag(kind))
+    pub const fn singleton(kind: u8) -> Self {
+        TokenSet(Self::flag(kind), PhantomData)
     }
 
-    pub fn from_iter(iter: impl IntoIterator<Item = TokenKind>) -> Self {
+    pub fn from_iter(iter: impl IntoIterator<Item = impl Into<u8>>) -> Self {
         let mut out = 0u128;
         for x in iter {
-            out |= Self::flag(x);
+            out |= Self::flag(x.into());
         }
-        TokenSet(out)
+        TokenSet(out, PhantomData)
     }
 
-    pub const fn union(self, other: TokenSet) -> Self {
-        TokenSet(self.0 | other.0)
+    pub const fn union(self, other: TokenSet<T>) -> Self {
+        TokenSet(self.0 | other.0, PhantomData)
     }
 
-    pub const fn contains(self, kind: TokenKind) -> bool {
+    pub const fn contains(self, kind: u8) -> bool {
         (Self::flag(kind) & self.0) != 0
     }
 
-    const fn flag(kind: TokenKind) -> u128 {
-        1u128 << kind as u8
+    const fn flag(kind: u8) -> u128 {
+        1u128 << kind
     }
 }
 
 #[macro_export]
 macro_rules! tokenset {
     ($($ex:expr),*) => {
-        TokenSet::empty()$(.union(TokenSet::singleton($ex)))*
+        $crate::TokenSet::empty()$(.union($crate::TokenSet::singleton($ex as u8)))*
     };
+    ($ex:expr => $ts:expr) => {{
+        let ts: $crate::TokenSet<_> = $ts;
+        ts.contains($ex.into())
+    }}
 }

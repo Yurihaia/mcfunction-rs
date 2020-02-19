@@ -1,0 +1,31 @@
+---
+source: crates/parse/src/mcf/grammar/nbt.rs
+expression: "parse_path(\"[0][34][12553]\")"
+---
+Group(NbtPath) at 0:0 - 0:14 {
+    Group(NbtPathSegment) at 0:0 - 0:3 {
+        Group(NbtPathIndex) at 0:0 - 0:3 {
+            Token(LBracket) `[` at 0:0 - 0:1
+            Joined(Integer) `0` at 0:1 - 0:2
+            Token(RBracket) `]` at 0:2 - 0:3
+        }
+    }
+    Group(NbtPathSegment) at 0:3 - 0:7 {
+        Group(NbtPathIndex) at 0:3 - 0:7 {
+            Token(LBracket) `[` at 0:3 - 0:4
+            Joined(Integer) `34` at 0:4 - 0:6
+            Token(RBracket) `]` at 0:6 - 0:7
+        }
+    }
+    Group(NbtPathSegment) at 0:7 - 0:14 {
+        Group(NbtPathIndex) at 0:7 - 0:14 {
+            Token(LBracket) `[` at 0:7 - 0:8
+            Joined(Integer) `12553` at 0:8 - 0:13
+            Token(RBracket) `]` at 0:13 - 0:14
+        }
+    }
+    Group(NbtPathSegment) at 0:14 - 0:14 {
+        Error `Error while parsing 'NbtPathSegment'` at 0:14 - 0:14
+    }
+}
+

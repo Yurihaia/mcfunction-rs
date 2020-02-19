@@ -1,9 +1,0 @@
----
-source: crates/parse/src/grammar/selector.rs
-expression: "parse_selector(\"@p\")"
----
-Group(Selector) at 0:0 - 0:2 {
-    Token(At) `@` at 0:0 - 0:1
-    Joined(SelectorModP) `p` at 0:1 - 0:2
-}
-

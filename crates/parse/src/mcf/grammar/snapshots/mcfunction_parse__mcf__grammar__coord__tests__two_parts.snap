@@ -1,0 +1,19 @@
+---
+source: crates/parse/src/mcf/grammar/coord.rs
+expression: "parse_coord(\"~12 ~3\")"
+---
+Group(Coord) at 0:0 - 0:6 {
+    Group(CoordPart) at 0:0 - 0:3 {
+        Token(Tilde) `~` at 0:0 - 0:1
+        Joined(Float) `12` at 0:1 - 0:3
+    }
+    Token(Whitespace) ` ` at 0:3 - 0:4
+    Group(CoordPart) at 0:4 - 0:6 {
+        Token(Tilde) `~` at 0:4 - 0:5
+        Joined(Float) `3` at 0:5 - 0:6
+    }
+    Error `Expected one of 'Whitespace'` at 0:6 - 0:6
+    Group(CoordPart) at 0:6 - 0:6 {
+    }
+}
+

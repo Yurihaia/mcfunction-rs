@@ -1,6 +1,0 @@
----
-source: crates/parse/src/grammar/util.rs
-expression: "test(\"namespace:single\", resource_location)"
----
-Joined(ResourceLocation) `namespace:single` at 0:0 - 0:16
-

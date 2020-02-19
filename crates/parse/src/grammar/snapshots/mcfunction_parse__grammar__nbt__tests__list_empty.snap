@@ -1,9 +1,0 @@
----
-source: crates/parse/src/grammar/nbt.rs
-expression: "parse_nbt(\"[]\")"
----
-Group(NbtSequence) at 0:0 - 0:2 {
-    Token(LBracket) `[` at 0:0 - 0:1
-    Token(RBracket) `]` at 0:1 - 0:2
-}
-
