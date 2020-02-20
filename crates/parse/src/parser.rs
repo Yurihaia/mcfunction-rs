@@ -289,7 +289,7 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         self.events.push(evt);
     }
 
-    pub fn build(self, save_errors: bool) -> Ast<'s, L> {
+    pub fn build(self, save_errors: bool) -> Ast<&'s str, L> {
         crate::ast::build_ast(self.events, self.src, save_errors)
     }
 }

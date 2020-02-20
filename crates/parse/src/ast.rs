@@ -11,70 +11,83 @@ pub enum SyntaxKind<L: Language> {
 }
 
 #[derive(Debug)]
-pub struct Ast<'a, L: Language> {
-    src: &'a str,
-    arena: Vec<AstNode<'a, L>>,
+pub struct Ast<T: AsRef<str>, L: Language> {
+    src: T,
+    arena: Vec<AstNode<L>>,
     errors: Vec<usize>,
 }
 
-impl<'a, L: Language> Ast<'a, L> {
-    pub fn root(&self) -> AstView<'_, L> {
+impl<T: AsRef<str>, L: Language> Ast<T, L> {
+    pub fn root(&self) -> AstView<T, L> {
         AstView(0, self)
     }
 
-    pub fn errors(&self) -> impl Iterator<Item = AstView<'_, L>> + '_ {
+    pub fn errors(&self) -> impl Iterator<Item = AstView<T, L>> + '_ {
         self.errors.iter().copied().map(move |v| AstView(v, self))
     }
 
-    pub fn bind(&self, view: UnboundView<L>) -> AstView<'_, L> {
+    pub fn bind(&self, view: UnboundView<L>) -> AstView<T, L> {
         AstView(view.0, self)
+    }
+
+    pub fn retype_src<I: From<T> + AsRef<str>>(self) -> Ast<I, L> {
+        self.retype_src_with(I::from)
+    }
+
+    pub fn retype_src_with<F: FnOnce(T) -> I, I: AsRef<str>>(self, f: F) -> Ast<I, L> {
+        Ast {
+            arena: self.arena,
+            errors: self.errors,
+            src: f(self.src),
+        }
     }
 }
 
 #[derive(Debug)]
-pub(crate) struct AstNode<'a, L: Language> {
+pub(crate) struct AstNode<L: Language> {
     kind: SyntaxKind<L>,
-    string: &'a str,
+    string: (usize, usize),
     span: Span,
     children: Vec<usize>,
     parent: Option<usize>,
     sibling_index: usize,
 }
 
-pub struct AstView<'a, L: Language>(usize, &'a Ast<'a, L>);
+pub struct AstView<'a, T: AsRef<str>, L: Language>(usize, &'a Ast<T, L>);
 
-impl<L: Language> Clone for AstView<'_, L> {
+impl<T: AsRef<str>, L: Language> Clone for AstView<'_, T, L> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<L: Language> Copy for AstView<'_, L> {}
+impl<T: AsRef<str>, L: Language> Copy for AstView<'_, T, L> {}
 
 #[derive(Copy, Clone)]
 pub struct UnboundView<L: Language>(usize, std::marker::PhantomData<fn() -> L>);
 
-impl<'a, L: Language + std::fmt::Debug> std::fmt::Debug for AstView<'a, L> {
+impl<'a, T: AsRef<str>, L: Language + std::fmt::Debug> std::fmt::Debug for AstView<'a, T, L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.node())
     }
 }
 
-impl<'a, L: Language> PartialEq for AstView<'a, L> {
+impl<'a, T: AsRef<str>, L: Language> PartialEq for AstView<'a, T, L> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0 && std::ptr::eq(self.1, other.1)
     }
 }
 
-impl<L: Language> Eq for AstView<'_, L> {}
+impl<T: AsRef<str>, L: Language> Eq for AstView<'_, T, L> {}
 
-impl<'a, L: Language> AstView<'a, L> {
+impl<'a, T: AsRef<str>, L: Language> AstView<'a, T, L> {
     pub fn kind(&self) -> &SyntaxKind<L> {
         &self.node().kind
     }
 
     pub fn string(&self) -> &'a str {
-        self.node().string
+        let (start, end) = self.node().string;
+        &self.1.src.as_ref()[start..end]
     }
 
     pub fn span(&self) -> Span {
@@ -89,7 +102,7 @@ impl<'a, L: Language> AstView<'a, L> {
         self.node().parent.map(|v| self.new(v))
     }
 
-    pub fn children(&self) -> impl Iterator<Item = AstView<'_, L>> {
+    pub fn children(&self) -> impl Iterator<Item = AstView<'_, T, L>> {
         self.node().children.iter().map(move |v| self.new(*v))
     }
 
@@ -127,16 +140,16 @@ impl<'a, L: Language> AstView<'a, L> {
         AstView(idx, self.1)
     }
 
-    fn node(&self) -> &AstNode<'a, L> {
+    fn node(&self) -> &AstNode<L> {
         &self.1.arena[self.0]
     }
 }
 
-pub fn build_ast<'a, L: Language>(
+pub fn build_ast<T: AsRef<str>, L: Language>(
     events: Vec<Event<L>>,
-    src: &'a str,
+    src: T,
     save_errors: bool,
-) -> Ast<'a, L> {
+) -> Ast<T, L> {
     let mut out = Ast {
         arena: vec![AstNode {
             kind: SyntaxKind::Root,
@@ -144,7 +157,7 @@ pub fn build_ast<'a, L: Language>(
             parent: None,
             sibling_index: 0,
             span: Span::default(),
-            string: &src[..0],
+            string: (0, 0),
         }],
         errors: vec![],
         src,
@@ -166,7 +179,7 @@ pub fn build_ast<'a, L: Language>(
                     parent: Some(parent),
                     sibling_index: out.arena[parent].children.len(),
                     span: Span::new(LineCol::new(0, 0), LineCol::new(0, 0)),
-                    string: &src[..0],
+                    string: (0, 0),
                 });
                 out.arena[parent].children.push(ind);
             }
@@ -182,7 +195,7 @@ pub fn build_ast<'a, L: Language>(
                     }
                     v => *v = Some((span, start, end)),
                 }
-                out.arena[node].string = &src[start..end];
+                out.arena[node].string = (start, end);
                 out.arena[node].span = span;
             }
             Event::Token(tk) => {
@@ -203,7 +216,7 @@ pub fn build_ast<'a, L: Language>(
                     parent: Some(parent.0),
                     sibling_index: cind,
                     span: tk.span(),
-                    string: tk.string(src),
+                    string: (tk.start(), tk.end()),
                 });
                 out.arena[parent.0].children.push(ind);
             }
@@ -217,7 +230,7 @@ pub fn build_ast<'a, L: Language>(
                     parent: Some(parent.0),
                     sibling_index: cind,
                     span: Span::default(),
-                    string: &src[..0],
+                    string: (0, 0),
                 });
                 errors.push(ind);
                 out.arena[ind_stack.last().unwrap().0].children.push(ind);
