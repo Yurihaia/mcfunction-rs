@@ -1,4 +1,4 @@
-use crate::{syntax::TokenKind, TokenSet};
+use crate::{syntax::TokenKind, tokenset, TokenSet};
 use std::fmt;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -46,7 +46,7 @@ pub enum McTokenKind {
 }
 
 impl TokenKind for McTokenKind {
-    const WHITESPACE: Self = Self::Whitespace;
+    const WHITESPACE: TokenSet<Self> = tokenset![Self::Whitespace];
     const EOF: Self = Self::Eof;
     const WORD: Self = Self::Word;
     const DELIMITERS: TokenSet<Self> = TokenSet::empty();

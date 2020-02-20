@@ -1,8 +1,7 @@
 use crate::{
-    ast::{AstNode, SyntaxKind},
     error::{ExpectedLit, ExpectedToken},
     syntax::TokenKind,
-    tokenset, LineCol, ParseError, Span, Token, TokenSet,
+    tokenset, Ast, LineCol, ParseError, Token, TokenSet,
 };
 
 use util::DropBomb;
@@ -23,8 +22,7 @@ pub trait Language: 'static {
 }
 
 impl<'t, 's, L: Language> Parser<'t, 's, L> {
-    // All tokens need to be from the same string slice, hence the unsafety
-    pub(crate) fn new(tokens: &'t [Token<L::TokenKind>], src: &'s str) -> Self {
+    pub fn new(tokens: &'t [Token<L::TokenKind>], src: &'s str) -> Self {
         Parser {
             tokens,
             events: Vec::new(),
@@ -35,7 +33,9 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
 
     pub fn start(&mut self, kind: L::GroupType, skip: StartInfo) -> Marker<'t, L> {
         if self.skip_ws {
-            self.skip_ws();
+            self.skip_ws = false;
+            while self.eat_tokens(L::TokenKind::WHITESPACE) {}
+            self.skip_ws = true;
         }
         let mk = Marker(
             self.tokens,
@@ -84,10 +84,17 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
 
     pub(crate) fn nth_tk(&self, n: usize) -> Token<L::TokenKind> {
         assert!(n <= 1);
-        match n {
-            0 => next_tk(self.tokens, self.skip_ws)[0],
-            1 => next_tk(&next_tk(self.tokens, self.skip_ws)[1..], self.skip_ws)[0],
-            _ => unreachable!(),
+        if self.skip_ws {
+            let mut off = 0;
+            for _ in 0..=n {
+                while tokenset!(self.tokens[off].kind() => L::TokenKind::WHITESPACE) {
+                    off += 1;
+                }
+                off += 1;
+            }
+            self.tokens[off - 1]
+        } else {
+            self.tokens[n]
         }
     }
 
@@ -95,19 +102,27 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         self.nth(0) == kind
     }
 
+    pub fn not_at(&self, kind: L::TokenKind) -> bool {
+        !(self.at(L::TokenKind::EOF) || self.at(kind))
+    }
+
     pub fn bump(&mut self) {
-        let tk = self.nth_tk(0);
+        if self.skip_ws {
+            self.skip_ws = false;
+            while self.eat_tokens(L::TokenKind::WHITESPACE) {}
+            self.skip_ws = true;
+        }
         // Never progress past the EOF so there will always be one token in the slice
         // Don't progress over line breaks either so the parser wont crash and burn
         if !self.at(L::TokenKind::EOF) {
-            self.push_event(Event::Token(tk));
+            self.push_event(Event::Token(self.nth_tk(0)));
             self.skip();
         }
     }
 
     pub fn skip(&mut self) {
         if !self.at(L::TokenKind::EOF) {
-            self.tokens = &next_tk(self.tokens, self.skip_ws)[1..];
+            self.tokens = &self.tokens[1..];
         }
     }
 
@@ -250,12 +265,6 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         }
     }
 
-    pub fn skip_ws(&mut self) {
-        if self.tokens[0].kind() == L::TokenKind::WHITESPACE {
-            self.tokens = &self.tokens[1..];
-        }
-    }
-
     pub fn error(&mut self, err: L::GroupType) {
         self.push_event(Event::Error(ParseError::Group(err)))
     }
@@ -280,170 +289,8 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         self.events.push(evt);
     }
 
-    pub fn build(self) -> AstNode<'s, L> {
-        #[derive(Debug)]
-        struct ParentNode<L: Language> {
-            kind: Option<L::GroupType>,
-            children: Vec<PartialNode<L>>,
-            join: bool,
-            spans: Option<(Span, usize, usize)>,
-        }
-
-        #[derive(Debug)]
-        enum PartialNode<L: Language> {
-            Error(ParseError<L>),
-            Group(ParentNode<L>),
-            Token(Token<L::TokenKind>),
-        }
-
-        let mut stack: Vec<ParentNode<L>> = vec![ParentNode {
-            kind: None,
-            children: Vec::new(),
-            join: false,
-            spans: None,
-        }];
-
-        for event in self.events {
-            match event {
-                Event::Start { kind, join } => {
-                    stack.push(ParentNode {
-                        kind: Some(kind),
-                        children: Vec::new(),
-                        join,
-                        spans: None,
-                    });
-                }
-                Event::End { linecol, off } => {
-                    let mut node = stack.pop().unwrap();
-                    if node.spans.is_none() {
-                        node.spans = Some((Span::new(linecol, linecol), off, off));
-                    }
-                    let parent = stack.last_mut().unwrap();
-                    let (span, start, end) = node.spans.unwrap();
-                    match &mut parent.spans {
-                        Some((sp, s, e)) => {
-                            *sp = sp.union(&span);
-                            *s = (*s).min(start);
-                            *e = (*e).max(end);
-                        }
-                        v @ None => *v = Some((span, start, end)),
-                    }
-                    parent.children.push(PartialNode::Group(node))
-                }
-                Event::Error(err) => stack
-                    .last_mut()
-                    .unwrap()
-                    .children
-                    .push(PartialNode::Error(err)),
-                Event::Token(tk) => {
-                    let parent = stack.last_mut().unwrap();
-                    match &mut parent.spans {
-                        Some((sp, s, e)) => {
-                            *sp = sp.union(&tk.span());
-                            *s = (*s).min(tk.start());
-                            *e = (*e).max(tk.end());
-                        }
-                        v @ None => *v = Some((tk.span(), tk.start(), tk.end())),
-                    }
-                    parent.children.push(PartialNode::Token(tk));
-                }
-            }
-        }
-
-        fn convert<'a, L: Language>(node: ParentNode<L>, src: &'a str) -> AstNode<'a, L> {
-            let (span, start, end) = node.spans.unwrap();
-            let mut children = Vec::with_capacity(node.children.len());
-            let mut iter = node.children.into_iter().peekable();
-            while let Some(child) = iter.next() {
-                match child {
-                    PartialNode::Token(tk) => {
-                        children.push(AstNode::new(
-                            SyntaxKind::Token(tk.kind()),
-                            Vec::new(),
-                            tk.string(src),
-                            tk.span(),
-                        ));
-                    }
-                    PartialNode::Group(node) => children.push(convert(node, src)),
-                    PartialNode::Error(err) => {
-                        let mut errs = vec![err];
-                        while let Some(v) = iter.peek() {
-                            match v {
-                                PartialNode::Error(_) => match iter.next() {
-                                    Some(PartialNode::Error(err)) => errs.push(err),
-                                    _ => unreachable!(),
-                                },
-                                _ => break,
-                            };
-                        }
-                        match iter.peek() {
-                            None => {
-                                for err in errs {
-                                    children.push(AstNode::new(
-                                        SyntaxKind::Error(err),
-                                        Vec::new(),
-                                        &src[end..end],
-                                        Span::new(span.end(), span.end()),
-                                    ))
-                                }
-                            }
-                            Some(PartialNode::Token(tk)) => {
-                                for err in errs {
-                                    children.push(AstNode::new(
-                                        SyntaxKind::Error(err),
-                                        Vec::new(),
-                                        tk.string(src),
-                                        tk.span(),
-                                    ))
-                                }
-                            }
-                            Some(PartialNode::Group(_)) => {
-                                if let Some(PartialNode::Group(parent)) = iter.next() {
-                                    let astnode = convert(parent, src);
-                                    for err in errs {
-                                        children.push(AstNode::new(
-                                            SyntaxKind::Error(err),
-                                            Vec::new(),
-                                            astnode.string(),
-                                            astnode.span(),
-                                        ));
-                                    }
-                                    children.push(astnode);
-                                } else {
-                                    unreachable!()
-                                }
-                            }
-                            _ => unreachable!(),
-                        }
-                    }
-                }
-            }
-            AstNode::new(
-                node.kind
-                    .map(if node.join {
-                        SyntaxKind::Joined
-                    } else {
-                        SyntaxKind::Group
-                    })
-                    .unwrap_or(SyntaxKind::Root),
-                children,
-                &src[start..end],
-                span,
-            )
-        }
-
-        assert!(stack.len() == 1);
-        let mut parent = stack.pop().unwrap();
-        if parent.spans.is_none() {
-            let fst = self.tokens[0];
-            parent.spans = Some((
-                Span::new(fst.span().start(), fst.span().start()),
-                fst.start(),
-                fst.start(),
-            ));
-        }
-
-        convert(parent, self.src)
+    pub fn build(self, save_errors: bool) -> Ast<'s, L> {
+        crate::ast::build_ast(self.events, self.src, save_errors)
     }
 }
 
@@ -576,17 +423,9 @@ impl<'p, 't, 's, L: Language> Lookahead<'p, 't, 's, L> {
 }
 
 #[derive(Debug)]
-enum Event<L: Language> {
+pub enum Event<L: Language> {
     Start { kind: L::GroupType, join: bool },
     End { linecol: LineCol, off: usize },
     Token(Token<L::TokenKind>),
     Error(ParseError<L>),
-}
-
-fn next_tk<T: TokenKind>(src: &[Token<T>], skip: bool) -> &[Token<T>] {
-    if skip && src[0].kind() == T::WHITESPACE {
-        &src[1..]
-    } else {
-        src
-    }
 }

@@ -15,6 +15,7 @@ mod group;
 #[cfg(test)]
 mod testing;
 
+#[derive(Debug)]
 pub struct McfLang;
 
 impl Language for McfLang {
@@ -35,11 +36,13 @@ impl<'c> CommandParser<'c> {
         let tokens = lexer::tokenize_str(i);
         assert!(!tokens.is_empty(), "Token stream is empty");
         let mut p = Parser::new(&tokens[0], i);
+        let fmk = p.start(McGroupType::File, StartInfo::None);
         self.parse_line(&mut p);
         for line in &tokens[1..] {
             p.change_tokens(&line);
             self.parse_line(&mut p);
         }
+        p.finish(fmk);
         p.build()
     }
 

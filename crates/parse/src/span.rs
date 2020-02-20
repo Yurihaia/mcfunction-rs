@@ -7,7 +7,7 @@ use std::fmt::{self, Display, Formatter};
 /// with one being the start and one being the end of the span.
 ///
 /// [`LineCol`]: ./struct.LineCol.html
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 pub struct Span {
     start: LineCol,
     end: LineCol,
@@ -102,7 +102,7 @@ impl Display for Span {
 
 /// A specific line and column in a source file.
 /// Both the line and the column are zero indexed.
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 pub struct LineCol {
     line: usize,
     col: usize,

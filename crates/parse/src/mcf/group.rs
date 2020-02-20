@@ -2,6 +2,7 @@ use util::commands::Index;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum McGroupType {
+    File,
     CommandNode(Index),
     Command,
     // NBT groups

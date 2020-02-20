@@ -40,7 +40,7 @@ impl<K: TokenKind> Token<K> {
 }
 
 pub trait TokenKind: Sized + std::fmt::Debug + std::fmt::Display + Copy + Eq + Into<u8> {
-    const WHITESPACE: Self;
+    const WHITESPACE: TokenSet<Self>;
     const EOF: Self;
     const WORD: Self;
     const DELIMITERS: TokenSet<Self>;
