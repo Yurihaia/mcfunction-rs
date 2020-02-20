@@ -1,6 +1,6 @@
 use crate::{
     parser::{Language, Parser, StartInfo},
-    tokenset, AstNode,
+    tokenset, Ast,
 };
 pub use group::McGroupType;
 pub use syntax::McTokenKind;
@@ -32,7 +32,7 @@ pub struct CommandParser<'c> {
 }
 
 impl<'c> CommandParser<'c> {
-    pub fn parse<'a>(&self, i: &'a str) -> AstNode<'a, McfLang> {
+    pub fn parse<'a>(&self, i: &'a str) -> Ast<&'a str, McfLang> {
         let tokens = lexer::tokenize_str(i);
         assert!(!tokens.is_empty(), "Token stream is empty");
         let mut p = Parser::new(&tokens[0], i);
@@ -43,7 +43,7 @@ impl<'c> CommandParser<'c> {
             self.parse_line(&mut p);
         }
         p.finish(fmk);
-        p.build()
+        p.build(true)
     }
 
     fn parse_line(&self, p: &mut McParser) {

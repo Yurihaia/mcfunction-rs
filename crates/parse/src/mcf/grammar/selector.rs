@@ -150,7 +150,7 @@ mod tests {
     }
 
     fn parse_selector(i: &str) -> String {
-        format_astnode(&parse(i, super::entity), 0)
+        format_astnode(parse(i, super::entity).root(), 0)
     }
 
     selector_test!(no_args, "@p");

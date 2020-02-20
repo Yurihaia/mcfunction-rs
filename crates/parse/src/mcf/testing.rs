@@ -1,13 +1,13 @@
 use crate::{
-    ast::{AstNode, SyntaxKind},
+    ast::{AstView, SyntaxKind},
     mcf::{lexer, McGroupType, McParser, McTokenKind, McfLang},
     parser::Parser,
-    Token,
+    Ast, Token,
 };
 
 use std::fmt::Write;
 
-pub fn format_astnode(node: &AstNode<McfLang>, indlevel: usize) -> String {
+pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
     let ind = "    ".repeat(indlevel);
     let mut out = String::new();
     match node.kind() {
@@ -111,7 +111,7 @@ pub fn format_sk_list(tokens: Vec<Vec<Token<McTokenKind>>>, src: &str) -> String
     out
 }
 
-pub fn parse<F: FnMut(&mut McParser)>(i: &str, mut f: F) -> AstNode<McfLang> {
+pub fn parse<'a, F: FnMut(&mut McParser)>(i: &'a str, mut f: F) -> Ast<&'a str, McfLang> {
     let tokens = lexer::tokenize_str(i);
     assert!(!tokens.is_empty(), "Token stream is empty");
     let mut parser = Parser::new(&tokens[0], i);
@@ -120,5 +120,5 @@ pub fn parse<F: FnMut(&mut McParser)>(i: &str, mut f: F) -> AstNode<McfLang> {
         parser.change_tokens(&line);
         f(&mut parser);
     }
-    parser.build()
+    parser.build(false)
 }

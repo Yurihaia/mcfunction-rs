@@ -116,7 +116,7 @@ mod tests {
     }
 
     fn parse_json(i: &str) -> String {
-        format_astnode(&parse(i, super::value), 0)
+        format_astnode(parse(i, super::value).root(), 0)
     }
 
     json_test!(boolean_true, "true");

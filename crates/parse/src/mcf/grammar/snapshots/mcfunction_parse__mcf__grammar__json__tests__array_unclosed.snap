@@ -2,13 +2,14 @@
 source: crates/parse/src/mcf/grammar/json.rs
 expression: "parse_json(r#\"[\"hello\", \"#)"
 ---
-Group(JsonList) at 0:0 - 0:9 {
+Group(JsonList) at 0:0 - 0:10 {
     Token(LBracket) `[` at 0:0 - 0:1
     Token(QuotedString) `"hello"` at 0:1 - 0:8
     Token(Comma) `,` at 0:8 - 0:9
-    Error `Expected one of '{', '[', 'Quoted String'` at 0:9 - 0:9
-    Error `Expected one of 'true', 'false', 'null'` at 0:9 - 0:9
-    Error `Error while parsing 'Float'` at 0:9 - 0:9
-    Error `Expected one of ']'` at 0:9 - 0:9
+    Token(Whitespace) ` ` at 0:9 - 0:10
+    Error `Expected one of '{', '[', 'Quoted String'` at 0:10 - 0:10
+    Error `Expected one of 'true', 'false', 'null'` at 0:10 - 0:10
+    Error `Error while parsing 'Float'` at 0:10 - 0:10
+    Error `Expected one of ']'` at 0:10 - 0:10
 }
 

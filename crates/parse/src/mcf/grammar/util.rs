@@ -236,7 +236,7 @@ mod tests {
     }
 
     fn test<F: FnMut(&mut McParser)>(i: &str, f: F) -> String {
-        format_astnode(&parse(i, f), 0)
+        format_astnode(parse(i, f).root(), 0)
     }
 
     util_test!(uq_string_single_word, "hello_world", uq_string);

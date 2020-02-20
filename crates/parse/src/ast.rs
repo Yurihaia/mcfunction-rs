@@ -163,7 +163,7 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
         src,
     };
     let mut errors = vec![];
-    let mut ind_stack = vec![(0, Some((Span::default(), 0, 0)))];
+    let mut ind_stack = vec![(0, None)];
     for evt in events {
         match evt {
             Event::Start { kind, join } => {
@@ -182,6 +182,7 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
                     string: (0, 0),
                 });
                 out.arena[parent].children.push(ind);
+                ind_stack.push((ind, None));
             }
             Event::End { linecol, off } => {
                 let (node, span) = ind_stack.pop().unwrap();
@@ -238,14 +239,18 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
         }
     }
 
-    for err in &errors {
+    'out: for err in &errors {
         let mut view = AstView(*err, &out);
         while let SyntaxKind::Error(_) = view.kind() {
             view = match view.next_sibling() {
                 Some(v) => v,
                 None => {
                     view = view.parent().unwrap();
-                    break;
+                    let ind = view.0;
+                    out.arena[*err].span =
+                        Span::new(out.arena[ind].span.end(), out.arena[ind].span.end());
+                    out.arena[*err].string = out.arena[ind].string;
+                    continue 'out;
                 }
             };
         }

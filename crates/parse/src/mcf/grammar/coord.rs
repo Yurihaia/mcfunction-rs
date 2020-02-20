@@ -70,7 +70,7 @@ mod tests {
     }
 
     fn parse_coord(i: &str) -> String {
-        format_astnode(&parse(i, super::coord), 0)
+        format_astnode(parse(i, super::coord).root(), 0)
     }
 
     coord_test!(all_absolute, "0 1 2");

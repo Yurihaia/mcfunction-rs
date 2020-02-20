@@ -9,6 +9,7 @@ repository = "https://github.com/Yurihaia/mcfunction-rs/tree/master/crates/parse
 description = "Parser for Minecraft commands and function files"
 
 [features]
+full = [ "mcf-syn" ]
 mcf-syn = []
 
 [dependencies]

@@ -145,11 +145,11 @@ mod tests {
     }
 
     fn parse_nbt(i: &str) -> String {
-        format_astnode(&parse(i, super::value), 0)
+        format_astnode(parse(i, super::value).root(), 0)
     }
 
     fn parse_path(i: &str) -> String {
-        format_astnode(&parse(i, super::path), 0)
+        format_astnode(parse(i, super::path).root(), 0)
     }
 
     nbt_test!(unsigned_int, "123");
