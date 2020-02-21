@@ -1,0 +1,28 @@
+---
+source: crates/mcf/src/syntax/grammar/selector.rs
+expression: "parse_selector(\"@p[advancements={hello\")"
+---
+Group(Selector) at 0:0 - 0:22 {
+    Token(At) `@` at 0:0 - 0:1
+    Joined(SelectorModP) `p` at 0:1 - 0:2
+    Group(SelectorArgument) at 0:2 - 0:22 {
+        Token(LBracket) `[` at 0:2 - 0:3
+        Group(SelectorArgumentEntry) at 0:3 - 0:22 {
+            Joined(UnquotedString) `advancements` at 0:3 - 0:15
+            Token(Eq) `=` at 0:15 - 0:16
+            Group(SelectorArgumentMap) at 0:16 - 0:22 {
+                Token(LCurly) `{` at 0:16 - 0:17
+                Group(SelectorArgumentMapEntry) at 0:17 - 0:22 {
+                    Joined(ResourceLocation) `hello` at 0:17 - 0:22
+                    Error `Expected one of '='` at 0:22 - 0:22
+                    Joined(ResourceLocation) `` at 0:22 - 0:22
+                }
+                Error `Expected one of ','` at 0:22 - 0:22
+                Error `Expected one of '}'` at 0:22 - 0:22
+            }
+        }
+        Error `Expected one of ','` at 0:22 - 0:22
+        Error `Expected one of ']'` at 0:22 - 0:22
+    }
+}
+

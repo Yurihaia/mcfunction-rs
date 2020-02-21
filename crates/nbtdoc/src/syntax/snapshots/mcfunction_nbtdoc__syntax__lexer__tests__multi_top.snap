@@ -1,0 +1,11 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"identifier 1023:7\"), \"identifier 1023:7\")"
+---
+Ident `identifier` at 0:0 - 0:10
+Whitespace ` ` at 0:10 - 0:11
+Float `1023` at 0:11 - 0:15
+Colon `:` at 0:15 - 0:16
+Float `7` at 0:16 - 0:17
+Eof `` at 0:17 - 0:17
+

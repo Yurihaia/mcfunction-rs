@@ -10,7 +10,7 @@ pub enum SyntaxKind<L: Language> {
     Error(ParseError<L>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Ast<T: AsRef<str>, L: Language> {
     src: T,
     arena: Vec<AstNode<L>>,
@@ -43,7 +43,7 @@ impl<T: AsRef<str>, L: Language> Ast<T, L> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) struct AstNode<L: Language> {
     kind: SyntaxKind<L>,
     string: (usize, usize),
@@ -63,8 +63,15 @@ impl<T: AsRef<str>, L: Language> Clone for AstView<'_, T, L> {
 
 impl<T: AsRef<str>, L: Language> Copy for AstView<'_, T, L> {}
 
-#[derive(Copy, Clone)]
 pub struct UnboundView<L: Language>(usize, std::marker::PhantomData<fn() -> L>);
+
+impl<L: Language> Clone for UnboundView<L> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<L: Language> Copy for UnboundView<L> {}
 
 impl<'a, T: AsRef<str>, L: Language + std::fmt::Debug> std::fmt::Debug for AstView<'a, T, L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

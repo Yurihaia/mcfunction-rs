@@ -1,0 +1,9 @@
+---
+source: crates/mcf/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"0.5772156649\"), \"0.5772156649\")"
+---
+Digits `0` at 0:0 - 0:1
+Dot `.` at 0:1 - 0:2
+Digits `5772156649` at 0:2 - 0:12
+Eof `` at 0:12 - 0:12
+

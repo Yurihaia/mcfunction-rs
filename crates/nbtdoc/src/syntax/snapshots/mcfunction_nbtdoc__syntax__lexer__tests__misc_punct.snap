@@ -1,0 +1,14 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\",::@:/..][\"), \",::@:/..][\")"
+---
+Comma `,` at 0:0 - 0:1
+ColonColon `::` at 0:1 - 0:3
+At `@` at 0:3 - 0:4
+Colon `:` at 0:4 - 0:5
+Slash `/` at 0:5 - 0:6
+DotDot `..` at 0:6 - 0:8
+RBracket `]` at 0:8 - 0:9
+LBracket `[` at 0:9 - 0:10
+Eof `` at 0:10 - 0:10
+

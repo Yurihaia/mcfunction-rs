@@ -1,6 +1,0 @@
----
-source: crates/parse/src/mcf/grammar/util.rs
-expression: "test(\":\", resource_location)"
----
-Joined(ResourceLocation) `:` at 0:0 - 0:1
-

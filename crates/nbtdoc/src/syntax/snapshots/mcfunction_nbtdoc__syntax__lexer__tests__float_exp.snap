@@ -1,0 +1,7 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"314.5e-2\"), \"314.5e-2\")"
+---
+Float `314.5e-2` at 0:0 - 0:8
+Eof `` at 0:8 - 0:8
+

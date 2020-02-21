@@ -1,0 +1,7 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"\\\"hello world\"), \"\\\"hello world\")"
+---
+QuotedString `"hello world` at 0:0 - 0:12
+Eof `` at 0:12 - 0:12
+

@@ -16,7 +16,7 @@ pub struct Parser<'t, 's, L: Language> {
 
 pub trait Language: 'static {
     type TokenKind: TokenKind;
-    type GroupType: std::fmt::Debug + Copy;
+    type GroupType: std::fmt::Debug + Copy + Eq;
 
     const ERROR_GROUP: Self::GroupType;
 }

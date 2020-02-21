@@ -1,0 +1,7 @@
+---
+source: crates/mcf/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"sOmE_IdEntiFier\"), \"sOmE_IdEntiFier\")"
+---
+Word `sOmE_IdEntiFier` at 0:0 - 0:15
+Eof `` at 0:15 - 0:15
+

@@ -1,0 +1,22 @@
+[package]
+name = "mcfunction-data"
+version = "0.0.1"
+authors = ["Yurihaia <17830663+Yurihaia@users.noreply.github.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/Yurihaia/mcfunction-rs/tree/master/crates/data"
+description = "Data collection for Minecraft commands"
+
+[dependencies]
+serde = "1.0.104"
+serde_json = "1.0.46"
+hematite-nbt = "0.4.1"
+zip = "0.5.4"
+relative-path = "1.0.0"
+dirs = "2.0.2"
+salsa = "0.14.1"
+util = { path = "../util" }
+
+[dev-dependencies]
+insta = "0.13.1"

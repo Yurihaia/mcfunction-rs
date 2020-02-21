@@ -6,11 +6,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/Yurihaia/mcfunction-rs/tree/master/crates/parse"
-description = "Parser for Minecraft commands and function files"
-
-[features]
-full = [ "mcf-syn" ]
-mcf-syn = []
+description = "Parser framework used throughout mcfunction-rss"
 
 [dependencies]
 util = { path = "../util" }

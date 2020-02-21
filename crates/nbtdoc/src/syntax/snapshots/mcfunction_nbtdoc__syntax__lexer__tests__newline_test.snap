@@ -1,0 +1,39 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"this text is on line one\\nthis is on line two\\n    this is indented by 4 spaces\"),\n               \"this text is on line one\\nthis is on line two\\n    this is indented by 4 spaces\")"
+---
+Ident `this` at 0:0 - 0:4
+Whitespace ` ` at 0:4 - 0:5
+Ident `text` at 0:5 - 0:9
+Whitespace ` ` at 0:9 - 0:10
+Ident `is` at 0:10 - 0:12
+Whitespace ` ` at 0:12 - 0:13
+Ident `on` at 0:13 - 0:15
+Whitespace ` ` at 0:15 - 0:16
+Ident `line` at 0:16 - 0:20
+Whitespace ` ` at 0:20 - 0:21
+Ident `one` at 0:21 - 0:24
+Whitespace `\n` at 0:24 - 1:0
+Ident `this` at 1:0 - 1:4
+Whitespace ` ` at 1:4 - 1:5
+Ident `is` at 1:5 - 1:7
+Whitespace ` ` at 1:7 - 1:8
+Ident `on` at 1:8 - 1:10
+Whitespace ` ` at 1:10 - 1:11
+Ident `line` at 1:11 - 1:15
+Whitespace ` ` at 1:15 - 1:16
+Ident `two` at 1:16 - 1:19
+Whitespace `\n    ` at 1:19 - 2:4
+Ident `this` at 2:4 - 2:8
+Whitespace ` ` at 2:8 - 2:9
+Ident `is` at 2:9 - 2:11
+Whitespace ` ` at 2:11 - 2:12
+Ident `indented` at 2:12 - 2:20
+Whitespace ` ` at 2:20 - 2:21
+Ident `by` at 2:21 - 2:23
+Whitespace ` ` at 2:23 - 2:24
+Float `4` at 2:24 - 2:25
+Whitespace ` ` at 2:25 - 2:26
+Ident `spaces` at 2:26 - 2:32
+Eof `` at 2:32 - 2:32
+

@@ -1,8 +1,11 @@
 [workspace]
 members = [
     "crates/parse",
-    "crates/lsp_server",
-    "crates/util"
+    "crates/data",
+    "crates/util",
+    "crates/nbtdoc",
+    "crates/mcf",
+    "crates/db", # Contrary to popular belief, this stands for Dinnerbone
 ]
 
 [package]
@@ -16,10 +19,23 @@ repository = "https://github.com/Yurihaia/mcfunction-rs"
 description = "A set of libraries for tools using Minecraft commands"
 
 [features]
-default = [ "parse", "lsp-server" ]
 parse = [ "mcfunction-parse" ]
-lsp-server = [ "mcfunction-lsp-server" ]
+data = [ "mcfunction-data" ]
+nbtdoc = [ "mcfunction-nbtdoc" ]
+mcf = [ "mcfunction-mcf" ]
+db = [ "mcfunction-db" ]
+full = [
+    "parse",
+    "data",
+    "nbtdoc",
+    "mcf",
+    "db"
+]
 
 [dependencies]
 mcfunction-parse = { path = "crates/parse", version = "0.0.1", optional = true }
-mcfunction-lsp-server = { path = "crates/lsp_server", version = "0.0.1", optional = true }
+mcfunction-data = { path = "crates/data", version = "0.0.1", optional = true }
+mcfunction-nbtdoc = { path = "crates/nbtdoc", version = "0.0.1", optional = true }
+mcfunction-mcf = { path = "crates/mcf", version = "0.0.1", optional = true }
+mcfunction-db = { path = "crates/db", version = "0.0.1", optional = true }
+util = { path = "crates/util", version = "0.0.1", optional = true }

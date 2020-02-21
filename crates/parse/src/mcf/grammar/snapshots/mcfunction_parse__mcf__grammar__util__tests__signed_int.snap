@@ -1,6 +1,0 @@
----
-source: crates/parse/src/mcf/grammar/util.rs
-expression: "test(\"-23445\", integer)"
----
-Joined(Integer) `-23445` at 0:0 - 0:6
-

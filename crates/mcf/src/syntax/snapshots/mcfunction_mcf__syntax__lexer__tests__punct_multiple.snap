@@ -1,0 +1,11 @@
+---
+source: crates/mcf/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"<=><%.-\"), \"<=><%.-\")"
+---
+Lte `<=` at 0:0 - 0:2
+Swap `><` at 0:2 - 0:4
+Invalid `%` at 0:4 - 0:5
+Dot `.` at 0:5 - 0:6
+Dash `-` at 0:6 - 0:7
+Eof `` at 0:7 - 0:7
+

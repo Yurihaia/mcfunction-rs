@@ -1,0 +1,6 @@
+---
+source: crates/mcf/src/syntax/grammar/json.rs
+expression: "parse_json(\"true\")"
+---
+Joined(BooleanTrue) `true` at 0:0 - 0:4
+

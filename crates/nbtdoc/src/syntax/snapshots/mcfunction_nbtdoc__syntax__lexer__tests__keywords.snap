@@ -1,0 +1,19 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"byte long int string extends compound enum\"),\n               \"byte long int string extends compound enum\")"
+---
+ByteKw `byte` at 0:0 - 0:4
+Whitespace ` ` at 0:4 - 0:5
+LongKw `long` at 0:5 - 0:9
+Whitespace ` ` at 0:9 - 0:10
+IntKw `int` at 0:10 - 0:13
+Whitespace ` ` at 0:13 - 0:14
+StringKw `string` at 0:14 - 0:20
+Whitespace ` ` at 0:20 - 0:21
+ExtendsKw `extends` at 0:21 - 0:28
+Whitespace ` ` at 0:28 - 0:29
+CompoundKw `compound` at 0:29 - 0:37
+Whitespace ` ` at 0:37 - 0:38
+EnumKw `enum` at 0:38 - 0:42
+Eof `` at 0:42 - 0:42
+

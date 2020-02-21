@@ -1,9 +1,0 @@
----
-source: crates/parse/src/mcf/grammar/nbt.rs
-expression: "parse_nbt(\"16s\")"
----
-Group(NbtNumber) at 0:0 - 0:3 {
-    Joined(Float) `16` at 0:0 - 0:2
-    Joined(NbtSuffixS) `s` at 0:2 - 0:3
-}
-

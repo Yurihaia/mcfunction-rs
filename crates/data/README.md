@@ -1,0 +1,1 @@
+# mcfunction-lsp-server

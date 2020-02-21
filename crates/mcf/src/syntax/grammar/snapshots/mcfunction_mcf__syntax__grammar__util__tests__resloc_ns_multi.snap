@@ -1,0 +1,6 @@
+---
+source: crates/mcf/src/syntax/grammar/util.rs
+expression: "test(\"namespace:path/to/thing\", resource_location)"
+---
+Joined(ResourceLocation) `namespace:path/to/thing` at 0:0 - 0:23
+

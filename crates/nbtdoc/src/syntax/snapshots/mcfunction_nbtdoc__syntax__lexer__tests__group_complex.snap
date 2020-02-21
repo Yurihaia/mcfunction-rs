@@ -1,0 +1,12 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"{.\\\"hello\\\" \\n ident}\"),\n               \"{.\\\"hello\\\" \\n ident}\")"
+---
+LCurly `{` at 0:0 - 0:1
+Dot `.` at 0:1 - 0:2
+QuotedString `"hello"` at 0:2 - 0:9
+Whitespace ` \n ` at 0:9 - 1:1
+Ident `ident` at 1:1 - 1:6
+RCurly `}` at 1:6 - 1:7
+Eof `` at 1:7 - 1:7
+

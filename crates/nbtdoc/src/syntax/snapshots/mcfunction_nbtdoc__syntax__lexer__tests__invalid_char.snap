@@ -1,0 +1,9 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"◑﹏◐\"), \"◑﹏◐\")"
+---
+Invalid `◑` at 0:0 - 0:3
+Invalid `﹏` at 0:3 - 0:6
+Invalid `◐` at 0:6 - 0:9
+Eof `` at 0:9 - 0:9
+

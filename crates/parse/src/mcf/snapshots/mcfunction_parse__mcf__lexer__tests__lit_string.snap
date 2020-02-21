@@ -1,7 +1,0 @@
----
-source: crates/parse/src/mcf/lexer.rs
-expression: "format_sk_list(super::tokenize_str(r#\"\"hello\"\"#), r#\"\"hello\"\"#)"
----
-QuotedString `"hello"` at 0:0 - 0:7
-Eof `` at 0:7 - 0:7
-

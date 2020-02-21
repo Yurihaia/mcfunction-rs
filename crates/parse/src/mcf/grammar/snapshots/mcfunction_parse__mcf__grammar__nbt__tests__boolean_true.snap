@@ -1,6 +1,0 @@
----
-source: crates/parse/src/mcf/grammar/nbt.rs
-expression: "parse_nbt(\"true\")"
----
-Joined(NbtBoolean) `true` at 0:0 - 0:4
-

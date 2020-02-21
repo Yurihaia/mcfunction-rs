@@ -1,0 +1,7 @@
+---
+source: crates/nbtdoc/src/syntax/lexer.rs
+expression: "format_sk_list(super::tokenize_str(\"s0m3_1dent1f13r\"), \"s0m3_1dent1f13r\")"
+---
+Ident `s0m3_1dent1f13r` at 0:0 - 0:15
+Eof `` at 0:15 - 0:15
+

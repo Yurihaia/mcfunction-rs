@@ -1,8 +1,0 @@
----
-source: crates/parse/src/mcf/grammar/nbt.rs
-expression: "parse_nbt(\"645423.\")"
----
-Group(NbtNumber) at 0:0 - 0:7 {
-    Joined(Float) `645423.` at 0:0 - 0:7
-}
-

@@ -2,9 +2,6 @@ pub mod ast;
 pub mod error;
 pub mod parser;
 
-#[cfg(feature = "mcf-syn")]
-pub mod mcf;
-
 mod span;
 mod syntax;
 

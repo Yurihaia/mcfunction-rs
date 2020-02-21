@@ -1,9 +1,0 @@
----
-source: crates/parse/src/mcf/lexer.rs
-expression: "format_sk_list(super::tokenize_str(\"{literal}\"), \"{literal}\")"
----
-LCurly `{` at 0:0 - 0:1
-Word `literal` at 0:1 - 0:8
-RCurly `}` at 0:8 - 0:9
-Eof `` at 0:9 - 0:9
-

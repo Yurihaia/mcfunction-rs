@@ -1,9 +1,11 @@
 [package]
 name = "util"
-version = "1.0.0"
-authors = ["yurihaia"]
+version = "0.0.1"
+authors = ["Yurihaia <17830663+Yurihaia@users.noreply.github.com>"]
 edition = "2018"
-description = "Common utility types for mcfunction-rs"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Yurihaia/mcfunction-rs/tree/master/crates/util"
+description = "Utility crate for mcfunction-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

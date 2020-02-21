@@ -1,6 +1,0 @@
----
-source: crates/parse/src/mcf/grammar/util.rs
-expression: "test(\"123qvr-wvg35.+\", uq_string)"
----
-Joined(UnquotedString) `123qvr-wvg35.+` at 0:0 - 0:14
-
