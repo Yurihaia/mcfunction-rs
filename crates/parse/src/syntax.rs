@@ -44,6 +44,7 @@ pub trait TokenKind: Sized + std::fmt::Debug + std::fmt::Display + Copy + Eq + I
     const EOF: Self;
     const WORD: Self;
     const DELIMITERS: TokenSet<Self>;
+    const START_WHITESPACE: TokenSet<Self>;
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]

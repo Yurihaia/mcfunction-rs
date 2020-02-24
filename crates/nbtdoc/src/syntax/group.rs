@@ -33,4 +33,8 @@ pub enum NdGroupType {
 
     CompoundInject,
     EnumInject,
+
+    DocCommentGroup,
+
+    DescribesBody,
 }

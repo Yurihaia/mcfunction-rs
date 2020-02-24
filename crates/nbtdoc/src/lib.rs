@@ -19,5 +19,5 @@ fn parse_nbtdoc(db: &impl NbtdocFileDatabase, id: FileId) -> Arc<Ast<Arc<str>, N
     assert!(!tokens.is_empty(), "Token stream is empty");
     let mut parser = Parser::new(&tokens, &text);
     file(&mut parser);
-    Arc::new(parser.build(true).retype_src())
+    Arc::new(parser.build(true).retype_src_with(|_| text.clone()))
 }

@@ -37,6 +37,10 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
             while self.eat_tokens(L::TokenKind::WHITESPACE) {}
             self.skip_ws = true;
         }
+        self.start_no_skip(kind, skip)
+    }
+
+    pub fn start_no_skip(&mut self, kind: L::GroupType, skip: StartInfo) -> Marker<'t, L> {
         let mk = Marker(
             self.tokens,
             self.events.len(),

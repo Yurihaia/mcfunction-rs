@@ -1,5 +1,5 @@
 use super::{group::McGroupType, lexer, tokens::McTokenKind, McParser, McfLang};
-use mcfunction_parse::{ast::AstView, parser::Parser, Ast, SyntaxKind, Token};
+use mcfunction_parse::{parser::Parser, Ast, AstView, SyntaxKind, Token};
 
 use std::fmt::Write;
 

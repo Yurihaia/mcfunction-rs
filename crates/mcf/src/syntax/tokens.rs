@@ -50,6 +50,7 @@ impl TokenKind for McTokenKind {
     const EOF: Self = Self::Eof;
     const WORD: Self = Self::Word;
     const DELIMITERS: TokenSet<Self> = TokenSet::empty();
+    const START_WHITESPACE: TokenSet<Self> = Self::WHITESPACE;
 }
 
 impl From<McTokenKind> for u8 {

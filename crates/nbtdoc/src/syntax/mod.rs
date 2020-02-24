@@ -1,5 +1,6 @@
 use mcfunction_parse::parser::{Language, Parser};
 
+pub mod cst;
 pub mod grammar;
 pub mod group;
 pub mod lexer;

@@ -70,7 +70,15 @@ impl TokenKind for NdTokenKind {
     const WHITESPACE: TokenSet<Self> = tokenset![Self::Whitespace, Self::Comment, Self::DocComment];
     const EOF: Self = Self::Eof;
     const WORD: Self = Self::Ident;
-    const DELIMITERS: TokenSet<Self> = TokenSet::empty();
+    const DELIMITERS: TokenSet<Self> = tokenset![
+        Self::LParen,
+        Self::RParen,
+        Self::LBracket,
+        Self::RBracket,
+        Self::LCurly,
+        Self::RCurly
+    ];
+    const START_WHITESPACE: TokenSet<Self> = tokenset![Self::Whitespace, Self::Comment];
 }
 
 impl From<NdTokenKind> for u8 {

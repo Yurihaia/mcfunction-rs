@@ -1,14 +1,19 @@
 use mcfunction_parse::{
     parser::StartInfo::{self, Skip},
-    tokenset, TokenSet,
+    tokenset, TokenKind, TokenSet,
 };
 
-use super::{group::NdGroupType::*, tokens::NdTokenKind::*, NdParser as Parser};
+use super::{
+    group::NdGroupType::*,
+    tokens::NdTokenKind::{self, *},
+    NdParser as Parser,
+};
 
 pub fn file(p: &mut Parser) {
     let mk = p.start(File, Skip);
     loop {
         let mk = p.start(Item, Skip);
+        doc_comments(p);
         let mut lk = p.lookahead();
         if lk.at(CompoundKw) {
             compound(p);
@@ -37,12 +42,14 @@ pub fn file(p: &mut Parser) {
             p.expect(DescribesKw);
             minecraft_ident(p);
             if p.eat(LBracket) {
+                let bmk = p.start(DescribesBody, Skip);
                 while p.not_at(RBracket) {
                     minecraft_ident(p);
                     if !p.at(RBracket) {
                         p.expect(Comma);
                     }
                 }
+                p.finish(bmk);
                 p.expect(RBracket);
             }
             p.expect(Semicolon);
@@ -64,16 +71,19 @@ pub fn compound(p: &mut Parser) {
     p.expect(CompoundKw);
     p.expect(Ident);
     if p.at(ExtendsKw) {
+        let exmk = p.start(CompoundExtends, Skip);
         p.bump();
         if index_over_ident(p) {
             registry_index(p);
         } else {
             ident_path(p);
         }
+        p.finish(exmk);
     }
     p.expect(LCurly);
     while p.not_at(RCurly) {
         let fmk = p.start(CompoundField, Skip);
+        doc_comments(p);
         ident_or_qs(p);
         p.expect(Colon);
         field_type(p);
@@ -110,6 +120,7 @@ pub fn enum_def(p: &mut Parser) {
     p.expect(LCurly);
     while p.not_at(RCurly) {
         let mk = p.start(EnumEntry, Skip);
+        doc_comments(p);
         p.expect(Ident);
         p.expect(Eq);
         let mut lk = p.lookahead();
@@ -138,6 +149,7 @@ pub fn inject(p: &mut Parser) {
         p.expect(LCurly);
         while p.not_at(RCurly) {
             let fmk = p.start(CompoundField, Skip);
+            doc_comments(p);
             ident_or_qs(p);
             p.expect(Colon);
             field_type(p);
@@ -169,6 +181,7 @@ pub fn inject(p: &mut Parser) {
         p.expect(LCurly);
         while p.not_at(RCurly) {
             let mk = p.start(EnumEntry, Skip);
+            doc_comments(p);
             p.expect(Ident);
             p.expect(Eq);
             let mut lk = p.lookahead();
@@ -217,7 +230,7 @@ pub fn ident_or_qs(p: &mut Parser) {
 }
 
 pub fn minecraft_ident(p: &mut Parser) {
-    let mk = p.start(MinecraftIdent, StartInfo::None);
+    let mk = p.start(MinecraftIdent, StartInfo::Join);
     if !p.eat(QuotedString) {
         if !p.at(Colon) {
             ident_or_qs(p);
@@ -234,6 +247,7 @@ pub fn registry_index(p: &mut Parser) {
     let mk = p.start(RegistryIndex, Skip);
     minecraft_ident(p);
     p.expect(LBracket);
+    let fmk = p.start(FieldPath, StartInfo::None);
     while p.not_at(RBracket) {
         let mut lk = p.lookahead();
         if lk.at(Ident) || lk.at(QuotedString) || lk.at(SuperKw) {
@@ -246,6 +260,7 @@ pub fn registry_index(p: &mut Parser) {
             p.expect(Dot);
         }
     }
+    p.finish(fmk);
     p.expect(RBracket);
     p.finish(mk);
 }
@@ -283,6 +298,7 @@ pub fn field_type(p: &mut Parser) {
         p.expect(RBracket);
     } else if lk.at(IdKw) {
         p.retype(&mk, IdType, false);
+        p.bump();
         p.expect(LParen);
         minecraft_ident(p);
         p.expect(RParen);
@@ -324,6 +340,12 @@ pub fn range(p: &mut Parser) {
             p.eat(Float);
         }
     }
+    p.finish(mk);
+}
+
+pub fn doc_comments(p: &mut Parser) {
+    let mk = p.start(DocCommentGroup, StartInfo::None);
+    while p.eat_tokens(NdTokenKind::WHITESPACE) {}
     p.finish(mk);
 }
 
