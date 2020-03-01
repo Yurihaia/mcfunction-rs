@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/util.rs
 expression: "test(\"+5356\", integer)"
 ---
+Root(File)
 Joined(Integer) `+5356` at 0:0 - 0:5
 

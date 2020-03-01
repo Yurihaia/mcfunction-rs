@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/json.rs
 expression: "parse_json(\"false\")"
 ---
+Root(File)
 Joined(BooleanFalse) `false` at 0:0 - 0:5
 

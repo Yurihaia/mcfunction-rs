@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_nbt(\"-2147483648\")"
 ---
+Root(File)
 Group(NbtNumber) at 0:0 - 0:11 {
     Joined(Float) `-2147483648` at 0:0 - 0:11
 }

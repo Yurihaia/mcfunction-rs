@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/util.rs
 expression: "test(\"-1233.86+534-\", uq_string)"
 ---
+Root(File)
 Joined(UnquotedString) `-1233.86+534-` at 0:0 - 0:13
 

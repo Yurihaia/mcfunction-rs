@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_nbt(\"{\\tfoo  :1564 ,  \\t   bar:420   }\")"
 ---
+Root(File)
 Group(NbtCompound) at 0:0 - 0:31 {
     Token(LCurly) `{` at 0:0 - 0:1
     Token(Whitespace) `\t` at 0:1 - 0:2

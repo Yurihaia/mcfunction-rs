@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/selector.rs
 expression: "parse_selector(\"@q[name=\\\"hello\\\"]\")"
 ---
+Root(File)
 Group(Selector) at 0:0 - 0:16 {
     Token(At) `@` at 0:0 - 0:1
     Error `Expected one of 'p', 'a', 'r', 's', 'e'` at 0:1 - 0:2

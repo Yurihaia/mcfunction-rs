@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_path(\"path.to.field\")"
 ---
+Root(File)
 Group(NbtPath) at 0:0 - 0:13 {
     Group(NbtPathSegment) at 0:0 - 0:4 {
         Token(Word) `path` at 0:0 - 0:4

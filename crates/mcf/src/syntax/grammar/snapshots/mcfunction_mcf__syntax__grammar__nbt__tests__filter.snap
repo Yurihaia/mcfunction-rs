@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_path(\"filter[{me:123}]\")"
 ---
+Root(File)
 Group(NbtPath) at 0:0 - 0:16 {
     Group(NbtPathSegment) at 0:0 - 0:6 {
         Token(Word) `filter` at 0:0 - 0:6

@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/util.rs
 expression: "test(\"my_location\", resource_location)"
 ---
+Root(File)
 Joined(ResourceLocation) `my_location` at 0:0 - 0:11
 

@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_nbt(\"false\")"
 ---
+Root(File)
 Joined(NbtBoolean) `false` at 0:0 - 0:5
 

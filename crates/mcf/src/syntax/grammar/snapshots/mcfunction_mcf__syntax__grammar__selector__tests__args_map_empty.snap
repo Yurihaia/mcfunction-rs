@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/selector.rs
 expression: "parse_selector(\"@a[scores={}]\")"
 ---
+Root(File)
 Group(Selector) at 0:0 - 0:13 {
     Token(At) `@` at 0:0 - 0:1
     Joined(SelectorModA) `a` at 0:1 - 0:2

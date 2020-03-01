@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/selector.rs
 expression: "parse_selector(\"@r[type=!minecraft:pig]\")"
 ---
+Root(File)
 Group(Selector) at 0:0 - 0:23 {
     Token(At) `@` at 0:0 - 0:1
     Joined(SelectorModR) `r` at 0:1 - 0:2

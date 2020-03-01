@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_path(\"\")"
 ---
+Root(File)
 Group(NbtPath) at 0:0 - 0:0 {
     Group(NbtPathSegment) at 0:0 - 0:0 {
         Error `Error while parsing 'NbtPathSegment'` at 0:0 - 0:0

@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/selector.rs
 expression: "parse_selector(\"@s[tag=hello,tag=goodbye,scores={}]\")"
 ---
+Root(File)
 Group(Selector) at 0:0 - 0:35 {
     Token(At) `@` at 0:0 - 0:1
     Joined(SelectorModS) `s` at 0:1 - 0:2

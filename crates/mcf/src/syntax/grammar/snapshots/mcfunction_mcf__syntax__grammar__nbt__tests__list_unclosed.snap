@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_nbt(\"[1, 2, 3, 4, 5, 6\")"
 ---
+Root(File)
 Group(NbtSequence) at 0:0 - 0:17 {
     Token(LBracket) `[` at 0:0 - 0:1
     Group(NbtNumber) at 0:1 - 0:2 {

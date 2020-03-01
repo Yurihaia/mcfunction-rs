@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/json.rs
 expression: "parse_json(r#\"{\"foo\":true,\"#)"
 ---
+Root(File)
 Group(JsonObject) at 0:0 - 0:12 {
     Token(LCurly) `{` at 0:0 - 0:1
     Group(JsonObjectEntry) at 0:1 - 0:11 {

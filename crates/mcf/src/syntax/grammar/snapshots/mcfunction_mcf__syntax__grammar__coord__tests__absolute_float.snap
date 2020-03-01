@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/coord.rs
 expression: "parse_coord(\"0.3 9.65 -.14927\")"
 ---
+Root(File)
 Group(Coord) at 0:0 - 0:16 {
     Group(CoordPart) at 0:0 - 0:3 {
         Joined(Float) `0.3` at 0:0 - 0:3

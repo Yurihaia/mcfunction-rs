@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/json.rs
 expression: "parse_json(r#\"\"hello world! This is a string\\n with\\n escapes\"\"#)"
 ---
+Root(File)
 Token(QuotedString) `"hello world! This is a string\n with\n escapes"` at 0:0 - 0:48
 

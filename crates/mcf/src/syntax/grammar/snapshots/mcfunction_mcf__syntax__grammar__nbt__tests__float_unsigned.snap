@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_nbt(\"0.5772156649\")"
 ---
+Root(File)
 Group(NbtNumber) at 0:0 - 0:12 {
     Joined(Float) `0.5772156649` at 0:0 - 0:12
 }

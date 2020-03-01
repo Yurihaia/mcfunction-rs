@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/selector.rs
 expression: "parse_selector(\"@p[advancements={hello\")"
 ---
+Root(File)
 Group(Selector) at 0:0 - 0:22 {
     Token(At) `@` at 0:0 - 0:1
     Joined(SelectorModP) `p` at 0:1 - 0:2

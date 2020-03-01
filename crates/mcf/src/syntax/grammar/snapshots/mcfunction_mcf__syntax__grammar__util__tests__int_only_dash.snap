@@ -2,5 +2,6 @@
 source: crates/mcf/src/syntax/grammar/util.rs
 expression: "test(\"-\", integer)"
 ---
+Root(File)
 Error `Error while parsing 'Integer'` at 0:0 - 0:0
 

@@ -2,6 +2,7 @@
 source: crates/mcf/src/syntax/grammar/json.rs
 expression: "parse_json(r#\"[true\"#)"
 ---
+Root(File)
 Group(JsonList) at 0:0 - 0:5 {
     Token(LBracket) `[` at 0:0 - 0:1
     Joined(BooleanTrue) `true` at 0:1 - 0:5
