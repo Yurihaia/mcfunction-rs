@@ -10,7 +10,6 @@ use super::{
 };
 
 pub fn file(p: &mut Parser) {
-    let mk = p.start(File, Skip);
     loop {
         let mk = p.start(Item, Skip);
         doc_comments(p);
@@ -63,7 +62,6 @@ pub fn file(p: &mut Parser) {
             break;
         }
     }
-    p.finish(mk);
 }
 
 pub fn compound(p: &mut Parser) {

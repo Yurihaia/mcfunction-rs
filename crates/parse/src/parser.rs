@@ -12,9 +12,10 @@ pub struct Parser<'t, 's, L: Language> {
     events: Vec<Event<L>>,
     src: &'s str,
     skip_ws: bool,
+    root: L::GroupType,
 }
 
-pub trait Language: 'static {
+pub trait Language: 'static + Copy + Clone + PartialEq + Eq + std::hash::Hash {
     type TokenKind: TokenKind;
     type GroupType: std::fmt::Debug + Copy + Eq;
 
@@ -22,12 +23,18 @@ pub trait Language: 'static {
 }
 
 impl<'t, 's, L: Language> Parser<'t, 's, L> {
-    pub fn new(tokens: &'t [Token<L::TokenKind>], src: &'s str) -> Self {
+    pub fn new(
+        tokens: &'t [Token<L::TokenKind>],
+        src: &'s str,
+        root: L::GroupType,
+        skip_ws: bool,
+    ) -> Self {
         Parser {
             tokens,
             events: Vec::new(),
             src,
-            skip_ws: false,
+            skip_ws,
+            root,
         }
     }
 
@@ -200,6 +207,7 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
             events: Vec::new(),
             src: self.src,
             skip_ws: self.skip_ws,
+            root: self.root,
         };
         let mk = parser.start(L::ERROR_GROUP, StartInfo::Join);
         if f(&mut TokenParser(&mut parser)).is_some() {
@@ -294,7 +302,7 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
     }
 
     pub fn build(self, save_errors: bool) -> Ast<&'s str, L> {
-        crate::ast::build_ast(self.events, self.src, save_errors)
+        crate::ast::build_ast(self.events, self.src, save_errors, self.root)
     }
 }
 

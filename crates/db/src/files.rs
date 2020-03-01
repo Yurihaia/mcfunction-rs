@@ -4,16 +4,21 @@
 //! or they can be zipped datapacks whose actual files exist in an outside location
 
 use relative_path::{RelativePath, RelativePathBuf};
+use util::arena::RawId;
 
 use std::collections::HashMap;
 
-/// A copyable index into a file arena
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct FileId(pub u32);
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+pub struct FileId(RawId);
+util::arena_id!(FileId);
 
-/// A copyable index into the datapack arena
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct DatapackId(pub u32);
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+pub struct DatapackId(RawId);
+util::arena_id!(DatapackId);
+
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+pub struct NamespaceId(RawId);
+util::arena_id!(NamespaceId);
 
 /// A definition of a single datapack
 #[derive(Debug)]
@@ -49,4 +54,21 @@ impl Datapack {
     pub fn remove(&mut self, path: &RelativePath) -> Option<FileId> {
         self.files.remove(path)
     }
+}
+
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+#[repr(u8)]
+pub enum DataType {
+    Advancements = 0,
+    LootTables,
+    Functions,
+    Predicates,
+    Recipes,
+    Structures,
+    BlockTags,
+    EntityTypeTags,
+    FluidTags,
+    FunctionTags,
+    ItemTags,
+    Nbtdoc,
 }

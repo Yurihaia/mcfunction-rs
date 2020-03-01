@@ -66,9 +66,9 @@ pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
         SyntaxKind::Error(err) => {
             write!(out, "{}Error `{}` at {}\n", ind, err, node.span()).unwrap();
         }
-        SyntaxKind::Root => {
+        SyntaxKind::Root(kind) => {
             for x in node.children() {
-                write!(out, "{}", format_astnode(x, indlevel)).unwrap();
+                write!(out, "Root({:?})\n{}", kind, format_astnode(x, indlevel)).unwrap();
             }
         }
     };
@@ -110,7 +110,7 @@ pub fn format_sk_list(tokens: Vec<Vec<Token<McTokenKind>>>, src: &str) -> String
 pub fn parse<'a, F: FnMut(&mut McParser)>(i: &'a str, mut f: F) -> Ast<&'a str, McfLang> {
     let tokens = lexer::tokenize_str(i);
     assert!(!tokens.is_empty(), "Token stream is empty");
-    let mut parser = Parser::new(&tokens[0], i);
+    let mut parser = Parser::new(&tokens[0], i, McGroupType::File, false);
     f(&mut parser);
     for line in &tokens[1..] {
         parser.change_tokens(&line);

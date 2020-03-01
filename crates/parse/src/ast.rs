@@ -1,14 +1,16 @@
 use crate::parser::Event;
 use crate::{parser::Language, LineCol, ParseError, Span};
 use std::convert::From;
+use std::marker::PhantomData;
 use std::{
     iter::{DoubleEndedIterator, ExactSizeIterator},
     ops::Deref,
 };
+use util::arena::{Arena, RawId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SyntaxKind<L: Language> {
-    Root,
+    Root(L::GroupType),
     Group(L::GroupType),
     Joined(L::GroupType),
     Token(L::TokenKind),
@@ -17,14 +19,31 @@ pub enum SyntaxKind<L: Language> {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Ast<T: AsRef<str>, L: Language> {
+    root: InnerAstIndex,
     src: T,
-    arena: Vec<InnerAstNode<L>>,
-    errors: Vec<usize>,
+    arena: Arena<InnerAstIndex, InnerAstNode<L>>,
+    errors: Vec<InnerAstIndex>,
 }
+
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+struct InnerAstIndex(RawId);
+util::arena_id!(InnerAstIndex);
 
 impl<T: AsRef<str>, L: Language> Ast<T, L> {
     pub fn root(&self) -> AstView<T, L> {
-        AstView(0, self)
+        AstView(self.root, self)
+    }
+
+    pub fn cst_root<C, D>(d: D) -> Result<C, D>
+    where
+        D: Deref<Target = Self>,
+        C: CstNode<String = T, Language = L, Node = OwnedNode<D>>,
+    {
+        if C::can_cast(d.root()) {
+            Ok(C::new(OwnedNode(d.root, d)))
+        } else {
+            Err(d)
+        }
     }
 
     pub fn errors(&self) -> impl Iterator<Item = AstView<T, L>> + '_ {
@@ -37,9 +56,26 @@ impl<T: AsRef<str>, L: Language> Ast<T, L> {
 
     pub fn retype_src_with<F: FnOnce(T) -> I, I: AsRef<str>>(self, f: F) -> Ast<I, L> {
         Ast {
+            root: self.root,
             arena: self.arena,
             errors: self.errors,
             src: f(self.src),
+        }
+    }
+
+    pub fn view_index(&self, ind: AstIndex<L>) -> AstView<T, L> {
+        AstView(ind.0, self)
+    }
+
+    pub fn cst_index<C, D>(d: D, ind: AstIndex<L>) -> Result<C, D>
+    where
+        D: Deref<Target = Self>,
+        C: CstNode<String = T, Language = L, Node = OwnedNode<D>>,
+    {
+        if C::can_cast(d.view_index(ind)) {
+            Ok(C::new(OwnedNode(ind.0, d)))
+        } else {
+            Err(d)
         }
     }
 }
@@ -56,6 +92,18 @@ pub trait CstNode {
     fn into_node(self) -> Self::Node;
 
     fn new(node: Self::Node) -> Self;
+
+    fn cast(node: Self::Node) -> Result<Self, Self::Node>
+    where
+        Self: Sized,
+    {
+        let this = Self::new(node);
+        if Self::can_cast(this.view()) {
+            Ok(this)
+        } else {
+            Err(this.into_node())
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -63,19 +111,21 @@ struct InnerAstNode<L: Language> {
     kind: SyntaxKind<L>,
     string: (usize, usize),
     span: Span,
-    children: Vec<usize>,
-    parent: Option<usize>,
+    children: Vec<InnerAstIndex>,
+    parent: Option<InnerAstIndex>,
     sibling_index: usize,
 }
 
-#[derive(Copy, Clone)]
-pub struct OwnedNode<D>(usize, D)
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct OwnedNode<D>(InnerAstIndex, D)
 where
     D: Deref;
 
-impl<D> OwnedNode<D>
+impl<T, L, D> OwnedNode<D>
 where
-    D: Deref,
+    T: AsRef<str>,
+    L: Language,
+    D: Deref<Target = Ast<T, L>>,
 {
     pub fn convert<F, N>(self, f: F) -> OwnedNode<N>
     where
@@ -92,14 +142,7 @@ where
     {
         OwnedNode(self.0, f(&self.1))
     }
-}
 
-impl<T, L, D> OwnedNode<D>
-where
-    T: AsRef<str>,
-    L: Language,
-    D: Deref<Target = Ast<T, L>>,
-{
     pub fn from_view(d: D, view: AstView<T, L>) -> Self {
         OwnedNode(view.0, d)
     }
@@ -176,7 +219,7 @@ where
 {
     _pd: std::marker::PhantomData<fn() -> C>,
     ast: D,
-    children: usize,
+    children: InnerAstIndex,
     index: usize,
 }
 
@@ -195,13 +238,20 @@ where
     }
 }
 
-pub struct AstView<'a, T: AsRef<str>, L: Language>(usize, &'a Ast<T, L>);
+pub struct AstView<'a, T: AsRef<str>, L: Language>(InnerAstIndex, &'a Ast<T, L>);
+
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+pub struct AstIndex<L: Language>(InnerAstIndex, PhantomData<fn() -> L>);
 
 impl<'a, T, L> AstView<'a, T, L>
 where
     T: AsRef<str>,
     L: Language,
 {
+    pub fn index(&self) -> AstIndex<L> {
+        AstIndex(self.0, PhantomData)
+    }
+
     pub fn kind<'b>(&'b self) -> &'a SyntaxKind<L> {
         &self.node().kind
     }
@@ -272,7 +322,7 @@ where
         self.parent()?.nth_child(ind)
     }
 
-    fn new(self, idx: usize) -> AstView<'a, T, L> {
+    fn new(self, idx: InnerAstIndex) -> AstView<'a, T, L> {
         AstView(idx, self.1)
     }
 
@@ -285,27 +335,24 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
     events: Vec<Event<L>>,
     src: T,
     save_errors: bool,
+    root: L::GroupType,
 ) -> Ast<T, L> {
-    let mut out = Ast {
-        arena: vec![InnerAstNode {
-            kind: SyntaxKind::Root,
-            children: vec![],
-            parent: None,
-            sibling_index: 0,
-            span: Span::default(),
-            string: (0, 0),
-        }],
-        errors: vec![],
-        src,
-    };
+    let mut arena = Arena::new();
+    let root = arena.push(InnerAstNode {
+        kind: SyntaxKind::Root(root),
+        children: vec![],
+        parent: None,
+        sibling_index: 0,
+        span: Span::default(),
+        string: (0, 0),
+    });
     let mut errors = vec![];
-    let mut ind_stack = vec![(0, None)];
+    let mut ind_stack = vec![(root, None)];
     for evt in events {
         match evt {
             Event::Start { kind, join } => {
-                let ind = out.arena.len();
                 let parent = ind_stack.last().unwrap().0;
-                out.arena.push(InnerAstNode {
+                let ind = arena.push(InnerAstNode {
                     kind: if join {
                         SyntaxKind::Joined(kind)
                     } else {
@@ -313,11 +360,11 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
                     },
                     children: vec![],
                     parent: Some(parent),
-                    sibling_index: out.arena[parent].children.len(),
+                    sibling_index: arena[parent].children.len(),
                     span: Span::new(LineCol::new(0, 0), LineCol::new(0, 0)),
                     string: (0, 0),
                 });
-                out.arena[parent].children.push(ind);
+                arena[parent].children.push(ind);
                 ind_stack.push((ind, None));
             }
             Event::End { linecol, off } => {
@@ -332,8 +379,8 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
                     }
                     v => *v = Some((span, start, end)),
                 }
-                out.arena[node].string = (start, end);
-                out.arena[node].span = span;
+                arena[node].string = (start, end);
+                arena[node].span = span;
             }
             Event::Token(tk) => {
                 let parent = ind_stack.last_mut().unwrap();
@@ -345,9 +392,8 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
                     }
                     v @ None => *v = Some((tk.span(), tk.start(), tk.end())),
                 }
-                let cind = out.arena[parent.0].children.len();
-                let ind = out.arena.len();
-                out.arena.push(InnerAstNode {
+                let cind = arena[parent.0].children.len();
+                let ind = arena.push(InnerAstNode {
                     kind: SyntaxKind::Token(tk.kind()),
                     children: vec![],
                     parent: Some(parent.0),
@@ -355,13 +401,12 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
                     span: tk.span(),
                     string: (tk.start(), tk.end()),
                 });
-                out.arena[parent.0].children.push(ind);
+                arena[parent.0].children.push(ind);
             }
             Event::Error(err) => {
                 let parent = ind_stack.last_mut().unwrap();
-                let ind = out.arena.len();
-                let cind = out.arena[parent.0].children.len();
-                out.arena.push(InnerAstNode {
+                let cind = arena[parent.0].children.len();
+                let ind = arena.push(InnerAstNode {
                     kind: SyntaxKind::Error(err),
                     children: vec![],
                     parent: Some(parent.0),
@@ -370,10 +415,17 @@ pub fn build_ast<T: AsRef<str>, L: Language>(
                     string: (0, 0),
                 });
                 errors.push(ind);
-                out.arena[ind_stack.last().unwrap().0].children.push(ind);
+                arena[ind_stack.last().unwrap().0].children.push(ind);
             }
         }
     }
+
+    let mut out = Ast {
+        arena,
+        errors: Vec::new(),
+        root,
+        src,
+    };
 
     'out: for err in &errors {
         let mut view = AstView(*err, &out);

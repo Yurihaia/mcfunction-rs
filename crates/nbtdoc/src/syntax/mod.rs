@@ -9,7 +9,7 @@ pub mod tokens;
 #[cfg(test)]
 mod testing;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct NbtdocLang;
 
 impl Language for NbtdocLang {

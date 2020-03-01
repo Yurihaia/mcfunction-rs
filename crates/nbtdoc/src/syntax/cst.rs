@@ -2,8 +2,8 @@ use super::{group::NdGroupType, tokens::NdTokenKind, NbtdocLang};
 use mcfunction_parse::ast::{Ast, AstView, CstNode, OwnedNode, SyntaxKind};
 use std::sync::Arc;
 
-type Node = OwnedNode<Arc<Ast<Arc<str>, NbtdocLang>>>;
-type RefNode<'a> = OwnedNode<DerefRef<'a, Arc<Ast<Arc<str>, NbtdocLang>>>>;
+pub type Node = OwnedNode<Arc<Ast<Arc<str>, NbtdocLang>>>;
+pub type RefNode<'a> = OwnedNode<DerefRef<'a, Arc<Ast<Arc<str>, NbtdocLang>>>>;
 
 // Helper trait for ownership stuff
 pub trait NH {
@@ -38,6 +38,7 @@ impl<'a> NH for RefNode<'a> {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct DerefRef<'a, D>(&'a D);
 impl<'a, D> std::ops::Deref for DerefRef<'a, D>
 where
@@ -240,6 +241,7 @@ macro_rules! cst_macro_helper {
     };
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct File<N>(N);
 impl_cst!(File, group File);
 impl<N: NH> File<N> {
@@ -247,7 +249,7 @@ impl<N: NH> File<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Item<N>(N);
 impl_cst!(Item, group Item);
 impl<N: NH> Item<N> {
@@ -283,7 +285,7 @@ impl<N: NH> Item<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Compound<N>(N);
 impl_cst!(Compound, group CompoundDef);
 impl<N: NH> Compound<N> {
@@ -299,7 +301,7 @@ impl<N: NH> Compound<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct CompoundExtends<N>(N);
 impl_cst!(CompoundExtends, group CompoundExtends);
 impl<N: NH> CompoundExtends<N> {
@@ -311,7 +313,7 @@ impl<N: NH> CompoundExtends<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct CompoundField<N>(N);
 impl_cst!(CompoundField, group CompoundField);
 impl<N: NH> CompoundField<N> {
@@ -327,7 +329,7 @@ impl<N: NH> CompoundField<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum FieldType<N> {
     Scalar(N),
     Array(N),
@@ -346,7 +348,7 @@ impl_cst!(enum FieldType,
     Named group NamedType named NamedType,
     Index group IndexType index IndexType
 );
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct ScalarType<N>(N);
 impl_cst!(ScalarType, group ScalarType);
 impl<N: NH> ScalarType<N> {
@@ -358,7 +360,7 @@ impl<N: NH> ScalarType<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum Primitive<N> {
     Boolean(N),
     Byte(N),
@@ -379,7 +381,7 @@ impl_cst!(enum Primitive,
     Double token DoubleKw,
     String token StringKw
 );
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct ArrayType<N>(N);
 impl_cst!(ArrayType, group ArrayType);
 impl<N: NH> ArrayType<N> {
@@ -407,7 +409,7 @@ impl<N: NH> ArrayType<N> {
 // Internal
 struct ArrayBracket<N>(N);
 impl_cst!(ArrayBracket, token LBracket);
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct ListType<N>(N);
 impl_cst!(ListType, group ListType);
 impl<N: NH> ListType<N> {
@@ -419,7 +421,7 @@ impl<N: NH> ListType<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct IdType<N>(N);
 impl_cst!(IdType, group IdType);
 impl<N: NH> IdType<N> {
@@ -427,7 +429,7 @@ impl<N: NH> IdType<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct UnionType<N>(N);
 impl_cst!(UnionType, group UnionType);
 impl<N: NH> UnionType<N> {
@@ -435,7 +437,7 @@ impl<N: NH> UnionType<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct NamedType<N>(N);
 impl_cst!(NamedType, group NamedType);
 impl<N: NH> NamedType<N> {
@@ -443,7 +445,7 @@ impl<N: NH> NamedType<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct IndexType<N>(N);
 impl_cst!(IndexType, group IndexType);
 impl<N: NH> IndexType<N> {
@@ -451,7 +453,7 @@ impl<N: NH> IndexType<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Enum<N>(N);
 impl_cst!(Enum, group EnumDef);
 impl<N: NH> Enum<N> {
@@ -467,7 +469,7 @@ impl<N: NH> Enum<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct EnumEntry<N>(N);
 impl_cst!(EnumEntry, group EnumEntry);
 impl<N: NH> EnumEntry<N> {
@@ -483,7 +485,7 @@ impl<N: NH> EnumEntry<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum EnumValue<N> {
     Float(N),
     String(N),
@@ -492,10 +494,10 @@ impl_cst!(enum EnumValue,
     Float token Float,
     String token QuotedString
 );
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Ident<N>(N);
 impl_cst!(Ident, token Ident);
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct EnumInject<N>(N);
 impl_cst!(EnumInject, group EnumInject);
 impl<N: NH> EnumInject<N> {
@@ -511,7 +513,7 @@ impl<N: NH> EnumInject<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct CompoundInject<N>(N);
 impl_cst!(CompoundInject, group CompoundInject);
 impl<N: NH> CompoundInject<N> {
@@ -523,7 +525,7 @@ impl<N: NH> CompoundInject<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Mod<N>(N);
 impl_cst!(Mod, group ModDecl);
 impl<N: NH> Mod<N> {
@@ -531,7 +533,7 @@ impl<N: NH> Mod<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Use<N>(N);
 impl_cst!(Use, group UseStatement);
 impl<N: NH> Use<N> {
@@ -547,7 +549,7 @@ impl<N: NH> Use<N> {
 // Internal
 struct Export<N>(N);
 impl_cst!(Export, token ExportKw);
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Describes<N>(N);
 impl_cst!(Describes, group DescribesStatement);
 impl<N: NH> Describes<N> {
@@ -563,7 +565,7 @@ impl<N: NH> Describes<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct DescribesTargets<N>(N);
 impl_cst!(DescribesTargets, group DescribesBody);
 impl<N: NH> DescribesTargets<N> {
@@ -571,7 +573,7 @@ impl<N: NH> DescribesTargets<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct IdentPath<N>(N);
 impl_cst!(IdentPath, group IdentPath);
 impl<N: NH> IdentPath<N> {
@@ -590,7 +592,7 @@ impl<N: NH> IdentPath<N> {
         }
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum IdentPathSegment<N> {
     Ident(N),
     Super(N),
@@ -614,7 +616,7 @@ impl<N: NH> IdentPathSegment<N> {
         }
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct RegistryIndex<N>(N);
 impl_cst!(RegistryIndex, group RegistryIndex);
 impl<N: NH> RegistryIndex<N> {
@@ -622,7 +624,7 @@ impl<N: NH> RegistryIndex<N> {
         self.0.as_ref().first_child()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct FieldPath<N>(N);
 impl_cst!(FieldPath, group FieldPath);
 impl<N: NH> FieldPath<N> {
@@ -630,7 +632,7 @@ impl<N: NH> FieldPath<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum FieldPathSegment<N> {
     Ident(N),
     Super(N),
@@ -663,10 +665,10 @@ impl<N: NH> FieldPathSegment<N> {
         }
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct MinecraftIdent<N>(N);
 impl_cst!(MinecraftIdent, joined MinecraftIdent);
-
+#[derive(Debug, PartialEq, Eq)]
 pub enum IdentOrString<N> {
     Ident(N),
     QuotedString(N),
@@ -690,7 +692,7 @@ impl<N: NH> IdentOrString<N> {
         }
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Range<N>(N);
 impl_cst!(Range, group Range);
 impl<N: NH> Range<N> {
@@ -706,7 +708,7 @@ impl<N: NH> Range<N> {
         self.0.as_ref().first_child::<DotDot<RefNode>>().is_none()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct DocCommentGroup<N>(N);
 impl_cst!(DocCommentGroup, group DocCommentGroup);
 impl<N: NH> DocCommentGroup<N> {
@@ -714,10 +716,10 @@ impl<N: NH> DocCommentGroup<N> {
         self.0.as_ref().children()
     }
 }
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct DocComment<N>(N);
 impl_cst!(DocComment, token DocComment);
-
+#[derive(Debug, PartialEq, Eq)]
 pub struct Float<N>(N);
 impl_cst!(Float, token Float);
 

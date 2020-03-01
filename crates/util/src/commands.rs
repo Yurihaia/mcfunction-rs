@@ -1,24 +1,18 @@
+use crate::arena::{Arena, RawId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Commands {
-    arena: Vec<Command>,
-}
-
-impl ops::Index<Index> for Commands {
-    type Output = Command;
-    fn index(&self, idx: Index) -> &Command {
-        &self.arena[idx.0]
-    }
+    arena: Arena<Index, Command>,
+    root: Index,
 }
 
 impl Commands {
     pub fn generate(root: CommandNode) -> Self {
-        Commands {
-            arena: CommandsBuilder::generate(root),
-        }
+        let (arena, root) = CommandsBuilder::generate(root);
+        Commands { arena, root }
     }
 
     pub fn root(&self) -> &Command {
@@ -26,16 +20,24 @@ impl Commands {
     }
 
     pub fn root_index(&self) -> Index {
-        Index(0)
+        self.root
     }
 }
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Index(usize);
+impl ops::Index<Index> for Commands {
+    type Output = Command;
+    fn index(&self, index: Index) -> &Self::Output {
+        &self.arena[index]
+    }
+}
+
+#[derive(Serialize, Deserialize, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct Index(RawId);
+arena_id!(Index);
 
 impl From<Index> for usize {
     fn from(item: Index) -> usize {
-        item.0
+        item.0.into()
     }
 }
 
@@ -247,18 +249,19 @@ pub struct CommandNode {
 
 #[derive(Debug)]
 struct CommandsBuilder {
-    arena: Vec<Command>,
+    arena: Arena<Index, Command>,
 }
 
 impl CommandsBuilder {
-    fn generate(root: CommandNode) -> Vec<Command> {
+    fn generate(root: CommandNode) -> (Arena<Index, Command>, Index) {
         let mut tree = HashMap::new();
-        let mut out = CommandsBuilder { arena: vec![] };
+        let mut out = CommandsBuilder {
+            arena: Arena::new(),
+        };
         let rootind = out.register_command(String::new(), root, &mut tree);
-        assert_eq!(rootind.0, 0);
         let tree = tree.get("").unwrap();
-        out.resolve_command(&tree, &tree);
-        out.arena
+        out.resolve_command(&tree, &tree, rootind);
+        (out.arena, rootind)
     }
 
     fn register_command(
@@ -267,8 +270,7 @@ impl CommandsBuilder {
         node: CommandNode,
         tree: &mut HashMap<String, CommandTree>,
     ) -> Index {
-        let ind = Index(self.arena.len());
-        self.arena.push(Command {
+        let ind = self.arena.push(Command {
             name: name.clone(),
             children: Vec::new(),
             executable: node.executable,
@@ -280,7 +282,7 @@ impl CommandsBuilder {
             for (name, child) in map {
                 inds.push(self.register_command(name, child, &mut tree_branch))
             }
-            self.arena[ind.0].children = inds;
+            self.arena[ind].children = inds;
             tree.insert(name, CommandTree(TreeBranch::Children(tree_branch), ind));
             ind
         } else if let Some(v) = node.redirect {
@@ -295,15 +297,15 @@ impl CommandsBuilder {
         }
     }
 
-    fn resolve_command(&mut self, tree: &CommandTree, root: &CommandTree) {
+    fn resolve_command(&mut self, tree: &CommandTree, root: &CommandTree, root_ind: Index) {
         match &tree.0 {
             TreeBranch::Children(map) => {
                 for (_, child) in map {
-                    self.resolve_command(child, root);
+                    self.resolve_command(child, root, root_ind);
                 }
             }
             TreeBranch::Root => {
-                self.arena[(tree.1).0].children = vec![Index(0)];
+                self.arena[tree.1].children = vec![root_ind];
             }
             TreeBranch::Redirect(path) => {
                 let mut top = root;
@@ -320,7 +322,7 @@ impl CommandsBuilder {
                         }
                     }
                 }
-                self.arena[(tree.1).0].children = self.arena[(top.1).0].children.clone();
+                self.arena[tree.1].children = self.arena[top.1].children.clone();
             }
         }
     }

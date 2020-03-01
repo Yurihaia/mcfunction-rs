@@ -13,6 +13,7 @@ description = "NBTDoc utilities for mcfunction-rs"
 [dependencies]
 mcfunction-parse = { path = "../parse", version = "0.0.1" }
 mcfunction-db = { path = "../db", version = "0.0.1" }
+util = { path = "../util", version = "0.0.1" }
 relative-path = "1.0.0"
 salsa = "0.14.1" # I don't care if its unstable. I really don't want to reimplement this by hand
 
