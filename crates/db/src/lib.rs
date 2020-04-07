@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 mod files;
 
 pub use files::{DataType, Datapack, DatapackId, FileId, NamespaceId};

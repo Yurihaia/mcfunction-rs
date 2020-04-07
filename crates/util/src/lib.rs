@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 #[macro_use]
 pub mod arena;
 pub mod commands;
