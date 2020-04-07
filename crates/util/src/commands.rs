@@ -58,9 +58,7 @@ impl Command {
         &'a self,
         commands: &'a Commands,
     ) -> impl Iterator<Item = (Index, &'a Command)> + 'a {
-        (&self.children)
-            .into_iter()
-            .map(move |ind| (*ind, &commands[*ind]))
+        self.children.iter().map(move |ind| (*ind, &commands[*ind]))
     }
 
     pub fn children_indices(&self) -> &[Index] {
@@ -300,7 +298,7 @@ impl CommandsBuilder {
     fn resolve_command(&mut self, tree: &CommandTree, root: &CommandTree, root_ind: Index) {
         match &tree.0 {
             TreeBranch::Children(map) => {
-                for (_, child) in map {
+                for child in map.values() {
                     self.resolve_command(child, root, root_ind);
                 }
             }

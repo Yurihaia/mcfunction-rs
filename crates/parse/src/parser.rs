@@ -109,6 +109,11 @@ impl<'t, 's, L: Language> Parser<'t, 's, L> {
         }
     }
 
+    pub fn nth_no_skip(&self, n: usize) -> L::TokenKind {
+        assert!(n <= 1);
+        self.tokens[n].kind()
+    }
+
     pub fn at(&self, kind: L::TokenKind) -> bool {
         self.nth(0) == kind
     }

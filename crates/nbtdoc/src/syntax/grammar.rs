@@ -348,11 +348,5 @@ pub fn doc_comments(p: &mut Parser) {
 }
 
 fn index_over_ident(p: &Parser) -> bool {
-    if p.at(Colon) || p.nth(1) == Colon {
-        return true;
-    } else if p.at(QuotedString) && p.nth(1) == LBracket {
-        return true;
-    } else {
-        return false;
-    }
+    p.at(Colon) || p.nth(1) == Colon || (p.at(QuotedString) && p.nth(1) == LBracket)
 }

@@ -42,7 +42,7 @@ pub const KW: &[(&str, NdTokenKind)] = &[
     ("id", IdKw),
 ];
 
-pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<NdTokenKind>> {
+pub fn tokenize_str(src: &str) -> Vec<Token<NdTokenKind>> {
     let mut off = 0;
     let mut out = vec![];
     let mut line = 0;
@@ -118,20 +118,20 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Token<NdTokenKind>> {
                 off + end,
             ));
             off += end;
-        } else if cn == '"' || cn == '\'' {
+        } else if cn == '"' {
             let mut chars = src[off..].chars();
             // consume the quotation
             chars.next().unwrap();
             let mut offset = 1; // length of quote marks is always 1 byte
             let mut escaped = false;
-            while let Some(ch) = chars.next() {
+            for ch in chars {
                 if ch == '\r' || ch == '\n' {
                     break;
                 }
                 offset += ch.len_utf8();
                 if escaped {
                     escaped = false;
-                } else if ch == cn {
+                } else if ch == '"' {
                     break;
                 } else if ch == '\\' {
                     escaped = true;
@@ -217,6 +217,10 @@ fn try_float(iter: impl Iterator<Item = char> + Clone) -> Option<usize> {
         }
         if iter.peek().copied() == Some('.') {
             iter.next();
+            len += 1;
+            if !iter.next()?.is_ascii_digit() {
+                return None;
+            }
             len += 1;
             while iter.peek().map(|v| v.is_ascii_digit()).unwrap_or(false) {
                 iter.next();

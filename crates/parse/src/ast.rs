@@ -153,36 +153,32 @@ where
 
     pub fn first_child<C>(self) -> Option<C>
     where
-        D: Clone,
         C: CstNode<String = T, Language = L, Node = Self>,
     {
         let id = self.view().children().find(|c| C::can_cast(*c))?.0;
-        Some(C::new(OwnedNode(id, self.1.clone())))
+        Some(C::new(OwnedNode(id, self.1)))
     }
 
     pub fn last_child<C>(self) -> Option<C>
     where
-        D: Clone,
         C: CstNode<String = T, Language = L, Node = Self>,
     {
         let id = self.view().children().rev().find(|c| C::can_cast(*c))?.0;
-        Some(C::new(OwnedNode(id, self.1.clone())))
+        Some(C::new(OwnedNode(id, self.1)))
     }
 
     pub fn next_sibling<C>(self) -> Option<C>
     where
-        D: Clone,
         C: CstNode<String = T, Language = L, Node = Self>,
     {
         let view = self.view();
         let cind = view.node().sibling_index;
         let id = view.children().skip(cind).find(|c| C::can_cast(*c))?.0;
-        Some(C::new(OwnedNode(id, self.1.clone())))
+        Some(C::new(OwnedNode(id, self.1)))
     }
 
     pub fn prev_sibling<C>(self) -> Option<C>
     where
-        D: Clone,
         C: CstNode<String = T, Language = L, Node = Self>,
     {
         let view = self.view();
@@ -193,7 +189,7 @@ where
             .rev()
             .find(|c| C::can_cast(*c))?
             .0;
-        Some(C::new(OwnedNode(id, self.1.clone())))
+        Some(C::new(OwnedNode(id, self.1)))
     }
 
     pub fn children<C>(self) -> Children<C, D, T, L>
@@ -266,7 +262,7 @@ where
     }
 
     pub fn parent(self) -> Option<Self> {
-        self.node().parent.map(|v| self.new(v))
+        self.node().parent.map(|v| self.new_view(v))
     }
 
     pub fn children(
@@ -277,7 +273,7 @@ where
             .children
             .clone()
             .into_iter()
-            .map(move |v| self.new(v))
+            .map(move |v| self.new_view(v))
     }
 
     pub fn first_child(self) -> Option<AstView<'a, T, L>> {
@@ -285,7 +281,7 @@ where
             .children
             .first()
             .copied()
-            .map(move |v| self.new(v))
+            .map(move |v| self.new_view(v))
     }
 
     pub fn last_child(self) -> Option<AstView<'a, T, L>> {
@@ -293,7 +289,7 @@ where
             .children
             .last()
             .copied()
-            .map(move |v| self.new(v))
+            .map(move |v| self.new_view(v))
     }
 
     pub fn nth_child(self, n: usize) -> Option<AstView<'a, T, L>> {
@@ -301,7 +297,7 @@ where
             .children
             .get(n)
             .copied()
-            .map(move |v| self.new(v))
+            .map(move |v| self.new_view(v))
     }
 
     pub fn next_sibling(self) -> Option<AstView<'a, T, L>> {
@@ -322,7 +318,7 @@ where
         self.parent()?.nth_child(ind)
     }
 
-    fn new(self, idx: InnerAstIndex) -> AstView<'a, T, L> {
+    fn new_view(self, idx: InnerAstIndex) -> AstView<'a, T, L> {
         AstView(idx, self.1)
     }
 

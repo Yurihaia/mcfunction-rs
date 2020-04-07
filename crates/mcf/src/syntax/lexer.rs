@@ -35,7 +35,7 @@ pub const PUNCT: &[(&str, McTokenKind)] = &[
     ("]", RBracket),
 ];
 
-pub fn tokenize_str<'a>(src: &'a str) -> Vec<Vec<Token<McTokenKind>>> {
+pub fn tokenize_str(src: &str) -> Vec<Vec<Token<McTokenKind>>> {
     let mut off = 0;
     let mut lines = vec![];
     let mut line_buf = vec![];
@@ -96,7 +96,7 @@ pub fn tokenize_str<'a>(src: &'a str) -> Vec<Vec<Token<McTokenKind>>> {
             chars.next().unwrap();
             let mut offset = 1; // length of quote marks is always 1 byte
             let mut escaped = false;
-            while let Some(ch) = chars.next() {
+            for ch in chars {
                 if ch == '\r' || ch == '\n' {
                     break;
                 }

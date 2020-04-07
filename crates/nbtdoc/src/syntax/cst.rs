@@ -85,11 +85,11 @@ macro_rules! impl_cst {
 
         impl<N: NH> $id<N> {
             pub fn into_arc(self) -> $id<Node> {
-                Self(self.0.into_arc())
+                $id(self.0.into_arc())
             }
 
             pub fn as_ref(&self) -> $id<RefNode> {
-                Self(self.0.as_ref())
+                $id(self.0.as_ref())
             }
         }
     };
@@ -125,11 +125,11 @@ macro_rules! impl_cst {
             }
 
             pub fn into_arc(self) -> $id<Node> {
-                Self(self.0.into_arc())
+                $id(self.0.into_arc())
             }
 
             pub fn as_ref(&self) -> $id<RefNode> {
-                Self(self.0.as_ref())
+                $id(self.0.as_ref())
             }
         }
     };
@@ -162,12 +162,12 @@ macro_rules! impl_cst {
         impl<N: NH> $id<N> {
             #[allow(dead_code)]
             pub fn into_arc(self) -> $id<Node> {
-                Self(self.0.into_arc())
+                $id(self.0.into_arc())
             }
 
             #[allow(dead_code)]
             pub fn as_ref(&self) -> $id<RefNode> {
-                Self(self.0.as_ref())
+                $id(self.0.as_ref())
             }
         }
     };

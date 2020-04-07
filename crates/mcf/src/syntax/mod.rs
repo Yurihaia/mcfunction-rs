@@ -6,6 +6,7 @@ use mcfunction_parse::{
 pub use tokens::McTokenKind;
 use util::commands::{Command, CommandNodeType, Commands, Index, ParserType, StringType};
 
+pub mod cst;
 pub mod grammar;
 pub mod lexer;
 pub mod tokens;
@@ -29,6 +30,14 @@ pub type McParser<'a, 'b> = Parser<'a, 'b, McfLang>;
 
 pub struct CommandParser<'c> {
     commands: &'c Commands,
+}
+
+pub fn parse_single<F: FnOnce(&mut Parser<McfLang>)>(i: &str, f: F) -> Ast<&str, McfLang> {
+    let tokens = lexer::tokenize_str(i);
+    assert!(!tokens.is_empty(), "Token stream is empty");
+    let mut p = Parser::new(&tokens[0], i, McGroupType::File, false);
+    f(&mut p);
+    p.build(true)
 }
 
 impl<'c> CommandParser<'c> {
@@ -170,10 +179,9 @@ impl<'c> CommandParser<'c> {
                 CommandNodeType::Argument { parser_type } => {
                     let cty = parser_lookahead(p, parser_type);
                     if let Some((c, cmd, _)) = best {
-                        if cty > c {
-                            best = Some((cty, child, index));
-                        } else if cmd.node_type() == child.node_type()
-                            && child.children_indices().len() > cmd.children_indices().len()
+                        if cty > c
+                            || (cmd.node_type() == child.node_type()
+                                && child.children_indices().len() > cmd.children_indices().len())
                         {
                             best = Some((cty, child, index));
                         }

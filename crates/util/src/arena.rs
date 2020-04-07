@@ -4,7 +4,7 @@ use std::{hash::Hash, ops};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Arena<I, T>(Vec<T>, /* *mut for invariance */ PhantomData<*mut I>);
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]

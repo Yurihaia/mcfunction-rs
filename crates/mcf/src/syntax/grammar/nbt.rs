@@ -11,10 +11,15 @@ use mcfunction_parse::{
 
 pub const NBT_NUMBER_SUFFIX: &[(&str, McGroupType)] = &[
     ("b", NbtSuffixB),
+    ("B", NbtSuffixB),
     ("s", NbtSuffixS),
+    ("S", NbtSuffixS),
     ("l", NbtSuffixL),
+    ("L", NbtSuffixL),
     ("f", NbtSuffixF),
+    ("F", NbtSuffixF),
     ("d", NbtSuffixD),
+    ("D", NbtSuffixD),
 ];
 
 pub const NBT_SEQ_PREFIX: &[(&str, McGroupType)] =
@@ -22,7 +27,9 @@ pub const NBT_SEQ_PREFIX: &[(&str, McGroupType)] =
 
 pub fn value(p: &mut McParser) {
     if p.at(QuotedString) {
+        let mk = p.start(NbtString, Skip);
         p.bump();
+        p.finish(mk);
     } else if p.at(LCurly) {
         compound(p);
     } else if p.at(LBracket) {
@@ -45,7 +52,9 @@ pub fn value(p: &mut McParser) {
         }
         p.expect(RBracket);
         p.finish(mk);
-    } else if p.at(Word) && !tokenset!(p.nth(1) => ALLOWED_UQ_STRING) && p.at_keyword(BOOLEAN) {
+    } else if p.at_keyword(BOOLEAN) && !tokenset!(p.nth_no_skip(1) => ALLOWED_UQ_STRING) {
+        // tokenset test is used to make sure the boolean isn't joined with another non-word
+        // token that would make it join into an unquoted string
         let mk = p.start(NbtBoolean, Join);
         p.bump();
         p.finish(mk);
@@ -54,12 +63,16 @@ pub fn value(p: &mut McParser) {
 
         if !p.try_token(float_tk, Float) {
             p.cancel(nmk);
+            let smk = p.start(NbtString, Skip);
             uq_string(p);
+            p.finish(smk);
         } else {
             p.eat_keyword(NBT_NUMBER_SUFFIX);
             if p.at_tokens(ALLOWED_UQ_STRING) {
                 p.cancel(nmk);
+                let smk = p.start(NbtString, Skip);
                 uq_string(p);
+                p.finish(smk);
             } else {
                 p.finish(nmk);
             }

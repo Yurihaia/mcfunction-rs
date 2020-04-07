@@ -5,7 +5,6 @@ use crate::syntax::grammar::file;
 use mcfunction_db::{FileId, FsDatabase, NamespaceId};
 use mcfunction_parse::{parser::Parser, Ast};
 use modules::{ModuleTree, Submodule};
-use salsa;
 use std::sync::Arc;
 use syntax::{
     cst::{File, Item, Node},

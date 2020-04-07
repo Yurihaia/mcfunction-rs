@@ -1,4 +1,10 @@
 {
     "editor.formatOnSave": true,
     "editor.insertSpaces": true,
+    "rust-analyzer.cargoFeatures.allFeatures": true,
+    "rust-analyzer.cargo-watch.command": "check",
+    "rust-analyzer.cargo-watch.arguments": [
+        "--all",
+        "--tests"
+    ]
 }

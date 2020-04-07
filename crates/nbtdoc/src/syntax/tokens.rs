@@ -55,7 +55,7 @@ pub enum NdTokenKind {
 }
 
 impl NdTokenKind {
-    pub fn is_keyword(&self) -> bool {
+    pub fn is_keyword(self) -> bool {
         use NdTokenKind::*;
         match self {
             ByteKw | ShortKw | IntKw | LongKw | FloatKw | DoubleKw | StringKw | BooleanKw

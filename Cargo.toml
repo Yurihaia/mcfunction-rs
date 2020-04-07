@@ -6,36 +6,5 @@ members = [
     "crates/nbtdoc",
     "crates/mcf",
     "crates/db", # Contrary to popular belief, this stands for Dinnerbone
+    "crates/nbt"
 ]
-
-[package]
-name = "mcfunction"
-version = "0.0.1"
-authors = ["Yurihaia <17830663+Yurihaia@users.noreply.github.com>"]
-edition = "2018"
-license = "MIT OR Apache-2.0"
-readme = "README.md"
-repository = "https://github.com/Yurihaia/mcfunction-rs"
-description = "A set of libraries for tools using Minecraft commands"
-
-[features]
-parse = [ "mcfunction-parse" ]
-data = [ "mcfunction-data" ]
-nbtdoc = [ "mcfunction-nbtdoc" ]
-mcf = [ "mcfunction-mcf" ]
-db = [ "mcfunction-db" ]
-full = [
-    "parse",
-    "data",
-    "nbtdoc",
-    "mcf",
-    "db"
-]
-
-[dependencies]
-mcfunction-parse = { path = "crates/parse", version = "0.0.1", optional = true }
-mcfunction-data = { path = "crates/data", version = "0.0.1", optional = true }
-mcfunction-nbtdoc = { path = "crates/nbtdoc", version = "0.0.1", optional = true }
-mcfunction-mcf = { path = "crates/mcf", version = "0.0.1", optional = true }
-mcfunction-db = { path = "crates/db", version = "0.0.1", optional = true }
-util = { path = "crates/util", version = "0.0.1", optional = true }
