@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 pub mod modules;
 pub mod syntax;
 
