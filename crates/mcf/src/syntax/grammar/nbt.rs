@@ -42,22 +42,27 @@ pub fn value(p: &mut McParser) {
             }
             p.bump();
         }
-        if !p.at(RBracket) {
-            loop {
-                value(p);
-                if !p.eat(Comma) {
-                    break;
-                }
+        while !p.at(RBracket) {
+            value(p);
+            if !p.eat(Comma) {
+                break;
             }
         }
         p.expect(RBracket);
         p.finish(mk);
-    } else if p.at_keyword(BOOLEAN) && !tokenset!(p.nth_no_skip(1) => ALLOWED_UQ_STRING) {
+    } else if p.at_keyword(BOOLEAN) {
         // tokenset test is used to make sure the boolean isn't joined with another non-word
         // token that would make it join into an unquoted string
         let mk = p.start(NbtBoolean, Join);
-        p.bump();
-        p.finish(mk);
+        if !tokenset!(p.nth_no_skip(1) => ALLOWED_UQ_STRING) {
+            p.bump();
+            p.finish(mk);
+            return;
+        }
+        p.cancel(mk);
+        let smk = p.start(NbtString, Skip);
+        uq_string(p);
+        p.finish(smk);
     } else {
         let nmk = p.start(NbtNumber, StartInfo::None);
 
@@ -84,16 +89,14 @@ pub fn compound(p: &mut McParser) {
     let cpdmk = p.start(NbtCompound, Skip);
 
     p.bump();
-    if !p.at(RCurly) {
-        loop {
-            let enmk = p.start(NbtCompoundEntry, Skip);
-            string(p);
-            p.expect(Colon);
-            value(p);
-            p.finish(enmk);
-            if !p.eat(Comma) {
-                break;
-            }
+    while !p.at(RCurly) {
+        let enmk = p.start(NbtCompoundEntry, Skip);
+        string(p);
+        p.expect(Colon);
+        value(p);
+        p.finish(enmk);
+        if !p.eat(Comma) {
+            break;
         }
     }
     p.expect(RCurly);

@@ -3,5 +3,7 @@ source: crates/mcf/src/syntax/grammar/nbt.rs
 expression: "parse_nbt(\"1a\")"
 ---
 Root(File)
-Joined(UnquotedString) `1a` at 0:0 - 0:2
+Group(NbtString) at 0:0 - 0:2 {
+    Joined(UnquotedString) `1a` at 0:0 - 0:2
+}
 

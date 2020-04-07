@@ -18,7 +18,9 @@ Group(NbtCompound) at 0:0 - 0:23 {
                     Group(NbtCompoundEntry) at 0:11 - 0:20 {
                         Joined(UnquotedString) `baz` at 0:11 - 0:14
                         Token(Colon) `:` at 0:14 - 0:15
-                        Token(QuotedString) `"ikr"` at 0:15 - 0:20
+                        Group(NbtString) at 0:15 - 0:20 {
+                            Token(QuotedString) `"ikr"` at 0:15 - 0:20
+                        }
                     }
                     Token(RCurly) `}` at 0:20 - 0:21
                 }

@@ -5,7 +5,9 @@ expression: "parse_nbt(\"['hello', 123, true]\")"
 Root(File)
 Group(NbtSequence) at 0:0 - 0:20 {
     Token(LBracket) `[` at 0:0 - 0:1
-    Token(QuotedString) `'hello'` at 0:1 - 0:8
+    Group(NbtString) at 0:1 - 0:8 {
+        Token(QuotedString) `'hello'` at 0:1 - 0:8
+    }
     Token(Comma) `,` at 0:8 - 0:9
     Token(Whitespace) ` ` at 0:9 - 0:10
     Group(NbtNumber) at 0:10 - 0:13 {
