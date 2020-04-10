@@ -102,10 +102,8 @@ pub fn seletor_arg_value(p: &mut McParser) {
         }
         p.expect(RCurly);
         p.finish(mapmk);
-    } else {
-        if !try_range_suffix(p) {
-            resource_location(p);
-        }
+    } else if !try_range_suffix(p) {
+        resource_location(p);
     }
 }
 

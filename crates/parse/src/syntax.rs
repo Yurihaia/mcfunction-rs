@@ -1,5 +1,6 @@
 use super::Span;
 
+use std::iter::FromIterator;
 use std::marker::PhantomData;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -59,14 +60,6 @@ impl<T> TokenSet<T> {
         TokenSet(Self::flag(kind), PhantomData)
     }
 
-    pub fn from_iter(iter: impl IntoIterator<Item = impl Into<u8>>) -> Self {
-        let mut out = 0u128;
-        for x in iter {
-            out |= Self::flag(x.into());
-        }
-        TokenSet(out, PhantomData)
-    }
-
     pub const fn union(self, other: TokenSet<T>) -> Self {
         TokenSet(self.0 | other.0, PhantomData)
     }
@@ -77,6 +70,16 @@ impl<T> TokenSet<T> {
 
     const fn flag(kind: u8) -> u128 {
         1u128 << kind
+    }
+}
+
+impl<T: Into<u8>> FromIterator<T> for TokenSet<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut out = 0u128;
+        for x in iter {
+            out |= Self::flag(x.into());
+        }
+        TokenSet(out, PhantomData)
     }
 }
 

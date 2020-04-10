@@ -421,9 +421,7 @@ impl<'p, 't, 's, L: Language> Lookahead<'p, 't, 's, L> {
             .events
             .push(Event::Error(ExpectedLit::new(self.kw).into()));
         for x in self.groups {
-            self.parser
-                .events
-                .push(Event::Error(ParseError::Group(x.into())));
+            self.parser.events.push(Event::Error(ParseError::Group(x)));
         }
     }
 
@@ -433,7 +431,7 @@ impl<'p, 't, 's, L: Language> Lookahead<'p, 't, 's, L> {
             ExpectedLit::new(self.kw).into(),
         ];
         for x in self.groups {
-            out.push(ParseError::Group(x.into()));
+            out.push(ParseError::Group(x));
         }
         out
     }

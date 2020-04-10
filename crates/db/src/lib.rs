@@ -4,7 +4,6 @@ mod files;
 pub use files::{DataType, Datapack, DatapackId, FileId, NamespaceId};
 use relative_path::RelativePath;
 use relative_path::RelativePathBuf;
-use salsa;
 use std::{collections::HashSet, sync::Arc};
 
 #[salsa::query_group(FsDatabaseStorage)]

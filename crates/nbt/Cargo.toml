@@ -19,5 +19,6 @@ snbt = [
 
 [dependencies]
 serde = "1.0.104"
+cesu8 = "1.1.0" # Plz NBT. Just use normal utf8 like a sane data format
 mcfunction-mcf = { path = "../mcf", version = "0.0.1", optional = true }
 mcfunction-parse = { path = "../parse", version = "0.0.1", optional = true }

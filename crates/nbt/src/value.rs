@@ -342,7 +342,7 @@ impl Display for NbtValue {
 pub enum NbtParseError {
     InvalidTagType(u8),
     Io(io::Error),
-    Utf16(std::string::FromUtf16Error),
+    StringFormat,
     UnexpectedEnd,
 }
 
@@ -351,7 +351,7 @@ impl Display for NbtParseError {
         match self {
             Self::InvalidTagType(v) => write!(f, "Invalid tag type '{}'", v),
             Self::Io(v) => write!(f, "{}", v),
-            Self::Utf16(v) => write!(f, "{}", v),
+            Self::StringFormat => write!(f, "Invalid string format"),
             Self::UnexpectedEnd => write!(f, "Unexpected end tag type"),
         }
     }
@@ -365,59 +365,20 @@ impl From<io::Error> for NbtParseError {
     }
 }
 
-impl From<std::string::FromUtf16Error> for NbtParseError {
-    fn from(err: std::string::FromUtf16Error) -> Self {
-        NbtParseError::Utf16(err)
-    }
-}
-
 fn read_string<R: Read>(r: &mut R) -> Result<String, NbtParseError> {
     let mut buf = [0u8; 2];
-    let len = read_number!(u16, r, buf);
-    // A pretty good estimation because most of the time the modified UTF-8 won't be in effect
-    let mut utf16 = Vec::with_capacity(len as usize);
-    for _ in 0..len {
-        let byte = read_number!(u8, r, buf);
-        if byte >> 7 == 0 {
-            utf16.push(byte as u16);
-        } else if byte >> 5 == 0b110 {
-            let byte2 = read_number!(u8, r, buf);
-            utf16.push(((byte as u16) & 0b11111 << 6) | ((byte2 as u16) & 0b111111));
-        } else if byte >> 4 == 0b1110 {
-            let byte2 = read_number!(u8, r, buf);
-            let byte3 = read_number!(u8, r, buf);
-            utf16.push(
-                ((byte as u16) & 0b1111 << 12)
-                    | ((byte2 as u16) & 0b111111 << 6)
-                    | ((byte3 as u16) & 0b111111),
-            );
-        }
-    }
-    Ok(String::from_utf16(&utf16)?)
+    let len = read_number!(u16, r, buf) as usize;
+    let mut buf = vec![0; len];
+    r.read_exact(&mut buf[..len])?;
+    cesu8::from_java_cesu8(&buf[..len])
+        .map_err(|_| NbtParseError::StringFormat)
+        .map(String::from)
 }
 
 fn write_string<W: Write>(w: &mut W, string: &str) -> Result<(), NbtParseError> {
-    let mut out: Vec<u8> = Vec::with_capacity(string.len());
-    for c in string.encode_utf16() {
-        match c {
-            0x0001..=0x007F => {
-                out.push(c as u8);
-            }
-            0x0000 | 0x0080..=0x07FF => {
-                out.push((c >> 6) as u8 & 0b11111);
-                out.push(c as u8 & 0b111111);
-            }
-            0x0800..=0xFFFF => {
-                out.push((c >> 12) as u8 & 0b11111);
-                out.push((c >> 6) as u8 & 0b111111);
-                out.push(c as u8 & 0b111111);
-            }
-        }
-    }
+    let out = cesu8::to_java_cesu8(string);
     write_number!(out.len() as u16, w);
-    for x in out {
-        write_number!(x, w);
-    }
+    w.write_all(&out)?;
     Ok(())
 }
 
@@ -446,6 +407,7 @@ mod snbt {
             if let Some(node) = node.as_ref().compound() {
                 let mut map = HashMap::new();
                 for entry in node.entries() {
+                    // Matches are used instead of Option::ok_or because of lifetime issues
                     let name = match entry.key() {
                         Some(v) => v,
                         None => return Err(SnbtParseError::MissingCompoundKey(map)),

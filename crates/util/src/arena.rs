@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::{hash::Hash, ops};
 
@@ -32,10 +33,6 @@ impl<I: ArenaId, T> Arena<I, T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
-
-    pub fn from_iter(iter: impl Iterator<Item = T>) -> Self {
-        Self(iter.collect(), PhantomData)
-    }
 }
 
 pub trait ArenaId: Into<RawId> + From<RawId> + Copy + Debug + Hash + Eq {}
@@ -58,6 +55,12 @@ impl<I, T> IntoIterator for Arena<I, T> {
     type IntoIter = std::vec::IntoIter<T>;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+impl<I, T> FromIterator<T> for Arena<I, T> {
+    fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
+        Self(iter.into_iter().collect(), PhantomData)
     }
 }
 

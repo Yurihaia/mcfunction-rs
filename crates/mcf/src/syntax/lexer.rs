@@ -187,7 +187,7 @@ pub fn tokenize_str(src: &str) -> Vec<Vec<Token<McTokenKind>>> {
         off,
     ));
     lines.push(line_buf);
-    return lines;
+    lines
 }
 
 #[cfg(test)]

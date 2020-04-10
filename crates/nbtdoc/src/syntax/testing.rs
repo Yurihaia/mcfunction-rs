@@ -12,27 +12,27 @@ pub fn format_astnode(node: AstView<&str, NbtdocLang>, indlevel: usize) -> Strin
     let mut out = String::new();
     match node.kind() {
         SyntaxKind::Token(tk) => match tk {
-            NdTokenKind::Whitespace => write!(
+            NdTokenKind::Whitespace => writeln!(
                 out,
-                "{}Token({:?}) `{}` at {}\n",
+                "{}Token({:?}) `{}` at {}",
                 ind,
                 tk,
                 node.string().escape_debug(),
                 node.span()
             )
             .unwrap(),
-            NdTokenKind::DocComment | NdTokenKind::Comment => write!(
+            NdTokenKind::DocComment | NdTokenKind::Comment => writeln!(
                 out,
-                "{}Token({:?}) `{}` at {}\n",
+                "{}Token({:?}) `{}` at {}",
                 ind,
                 tk,
                 node.string().trim(),
                 node.span()
             )
             .unwrap(),
-            _ => write!(
+            _ => writeln!(
                 out,
-                "{}Token({:?}) `{}` at {}\n",
+                "{}Token({:?}) `{}` at {}",
                 ind,
                 tk,
                 node.string(),
@@ -41,16 +41,16 @@ pub fn format_astnode(node: AstView<&str, NbtdocLang>, indlevel: usize) -> Strin
             .unwrap(),
         },
         SyntaxKind::Group(gt) => {
-            write!(out, "{}Group({:?}) at {} {{\n", ind, gt, node.span()).unwrap();
+            writeln!(out, "{}Group({:?}) at {} {{", ind, gt, node.span()).unwrap();
             for x in node.children() {
                 write!(out, "{}", format_astnode(x, indlevel + 1)).unwrap();
             }
-            write!(out, "{}}}\n", ind).unwrap();
+            writeln!(out, "{}}}", ind).unwrap();
         }
         SyntaxKind::Joined(gt) => {
-            write!(
+            writeln!(
                 out,
-                "{}Joined({:?}) `{}` at {}\n",
+                "{}Joined({:?}) `{}` at {}",
                 ind,
                 gt,
                 node.string(),
@@ -59,12 +59,12 @@ pub fn format_astnode(node: AstView<&str, NbtdocLang>, indlevel: usize) -> Strin
             .unwrap();
             for x in node.children() {
                 if let SyntaxKind::Error(err) = x.kind() {
-                    write!(out, "{}- Error `{}`\n", ind, err).unwrap()
+                    writeln!(out, "{}- Error `{}`", ind, err).unwrap()
                 }
             }
         }
         SyntaxKind::Error(err) => {
-            write!(out, "{}Error `{}` at {}\n", ind, err, node.span()).unwrap();
+            writeln!(out, "{}Error `{}` at {}", ind, err, node.span()).unwrap();
         }
         SyntaxKind::Root(kind) => {
             for x in node.children() {
@@ -79,27 +79,21 @@ pub fn format_sk_list(tokens: Vec<Token<NdTokenKind>>, src: &str) -> String {
     let mut out = String::new();
     for tk in tokens {
         match tk.kind() {
-            NdTokenKind::Whitespace => write!(
+            NdTokenKind::Whitespace => writeln!(
                 out,
-                "{:?} `{}` at {}\n",
+                "{:?} `{}` at {}",
                 tk.kind(),
                 tk.string(src).escape_debug(),
                 tk.span(),
             ),
-            NdTokenKind::DocComment | NdTokenKind::Comment => write!(
+            NdTokenKind::DocComment | NdTokenKind::Comment => writeln!(
                 out,
-                "{:?} `{}` at {}\n",
+                "{:?} `{}` at {}",
                 tk.kind(),
                 tk.string(src).trim(),
                 tk.span()
             ),
-            _ => write!(
-                out,
-                "{:?} `{}` at {}\n",
-                tk.kind(),
-                tk.string(src),
-                tk.span(),
-            ),
+            _ => writeln!(out, "{:?} `{}` at {}", tk.kind(), tk.string(src), tk.span(),),
         }
         .unwrap();
     }

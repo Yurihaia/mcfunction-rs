@@ -9,9 +9,9 @@ pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
     match node.kind() {
         SyntaxKind::Token(tk) => {
             if let McTokenKind::Whitespace = tk {
-                write!(
+                writeln!(
                     out,
-                    "{}Token({:?}) `{}` at {}\n",
+                    "{}Token({:?}) `{}` at {}",
                     ind,
                     tk,
                     node.string().escape_debug(),
@@ -19,9 +19,9 @@ pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
                 )
                 .unwrap();
             } else {
-                write!(
+                writeln!(
                     out,
-                    "{}Token({:?}) `{}` at {}\n",
+                    "{}Token({:?}) `{}` at {}",
                     ind,
                     tk,
                     node.string(),
@@ -31,9 +31,9 @@ pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
             }
         }
         SyntaxKind::Group(gt) => {
-            write!(
+            writeln!(
                 out,
-                "{}Group({}) at {} {{\n",
+                "{}Group({}) at {} {{",
                 ind,
                 match gt {
                     McGroupType::CommandNode(ind) => format!("CommandNode({})", usize::from(*ind)),
@@ -45,12 +45,12 @@ pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
             for x in node.children() {
                 write!(out, "{}", format_astnode(x, indlevel + 1)).unwrap();
             }
-            write!(out, "{}}}\n", ind).unwrap();
+            writeln!(out, "{}}}", ind).unwrap();
         }
         SyntaxKind::Joined(gt) => {
-            write!(
+            writeln!(
                 out,
-                "{}Joined({:?}) `{}` at {}\n",
+                "{}Joined({:?}) `{}` at {}",
                 ind,
                 gt,
                 node.string(),
@@ -59,12 +59,12 @@ pub fn format_astnode(node: AstView<&str, McfLang>, indlevel: usize) -> String {
             .unwrap();
             for x in node.children() {
                 if let SyntaxKind::Error(err) = x.kind() {
-                    write!(out, "{}- Error `{}`\n", ind, err).unwrap()
+                    writeln!(out, "{}- Error `{}`", ind, err).unwrap()
                 }
             }
         }
         SyntaxKind::Error(err) => {
-            write!(out, "{}Error `{}` at {}\n", ind, err, node.span()).unwrap();
+            writeln!(out, "{}Error `{}` at {}", ind, err, node.span()).unwrap();
         }
         SyntaxKind::Root(kind) => {
             for x in node.children() {
@@ -80,26 +80,20 @@ pub fn format_sk_list(tokens: Vec<Vec<Token<McTokenKind>>>, src: &str) -> String
     for line in tokens {
         for tk in line {
             match tk.kind() {
-                McTokenKind::Whitespace => write!(
+                McTokenKind::Whitespace => writeln!(
                     out,
-                    "{:?} `{}` at {}\n",
+                    "{:?} `{}` at {}",
                     tk.kind(),
                     tk.string(src).escape_debug(),
                     tk.span(),
                 ),
-                McTokenKind::Eof if tk.start() != tk.end() => write!(
+                McTokenKind::Eof if tk.start() != tk.end() => writeln!(
                     out,
-                    "LineBreak `{}` at {}\n",
+                    "LineBreak `{}` at {}",
                     tk.string(src).escape_debug(),
                     tk.span(),
                 ),
-                _ => write!(
-                    out,
-                    "{:?} `{}` at {}\n",
-                    tk.kind(),
-                    tk.string(src),
-                    tk.span(),
-                ),
+                _ => writeln!(out, "{:?} `{}` at {}", tk.kind(), tk.string(src), tk.span(),),
             }
             .unwrap();
         }
