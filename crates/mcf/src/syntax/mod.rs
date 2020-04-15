@@ -102,14 +102,14 @@ impl<'c> CommandParser<'c> {
                     | ParserType::Particle
                     | ParserType::ResourceLocation
                     | ParserType::ObjectiveCriteria => grammar::resource_location(p),
-                    ParserType::Double | ParserType::Float { properties: _ } => grammar::float(p),
-                    ParserType::Entity { properties: _ } => grammar::selector::entity(p),
+                    ParserType::Double | ParserType::Float { .. } => grammar::float(p),
+                    ParserType::Entity { .. } => grammar::selector::entity(p),
                     ParserType::EntityAnchor => {
                         p.expect(McTokenKind::Word);
                     }
                     ParserType::Function => grammar::function(p),
                     ParserType::GameProfile => grammar::selector::game_profile(p),
-                    ParserType::Integer { properties: _ } => grammar::integer(p),
+                    ParserType::Integer { .. } => grammar::integer(p),
                     ParserType::IntRange => grammar::range(p),
                     ParserType::ItemPredicate => grammar::item_predicate(p),
                     ParserType::ItemSlot => grammar::uq_string(p),
@@ -124,7 +124,7 @@ impl<'c> CommandParser<'c> {
                     }
                     ParserType::Rotation => grammar::coord::coord2(p),
                     ParserType::ScoreboardSlot => grammar::uq_string(p),
-                    ParserType::ScoreHolder { properties: _ } => grammar::selector::score_holder(p),
+                    ParserType::ScoreHolder { .. } => grammar::selector::score_holder(p),
                     ParserType::String { properties } => match properties.string_type {
                         StringType::Word => grammar::uq_string(p),
                         StringType::Phrase => grammar::string(p),
@@ -251,12 +251,12 @@ fn parser_lookahead(p: &McParser, arg: ParserType) -> Certainty {
                 return Certainty::Yes;
             }
         }
-        ParserType::Double | ParserType::Float { properties: _ } => {
+        ParserType::Double | ParserType::Float { .. } => {
             if p.at_token(grammar::float_tk) {
                 return Certainty::Yes;
             }
         }
-        ParserType::Entity { properties: _ } => {
+        ParserType::Entity { .. } => {
             if p.at(McTokenKind::At) || p.at_token(grammar::uuid_tk) {
                 return Certainty::Yes;
             } else if p.at_tokens(grammar::ALLOWED_UQ_STRING) {
@@ -280,7 +280,7 @@ fn parser_lookahead(p: &McParser, arg: ParserType) -> Certainty {
                 return Certainty::Maybe;
             }
         }
-        ParserType::Integer { properties: _ } => {
+        ParserType::Integer { .. } => {
             if p.at_token(grammar::integer_tk) {
                 return Certainty::Yes;
             }
@@ -348,7 +348,7 @@ fn parser_lookahead(p: &McParser, arg: ParserType) -> Certainty {
                 return Certainty::Maybe;
             }
         }
-        ParserType::ScoreHolder { properties: _ } => {
+        ParserType::ScoreHolder { .. } => {
             if p.at_tokens(tokenset![
                 McTokenKind::At,
                 McTokenKind::Word,
